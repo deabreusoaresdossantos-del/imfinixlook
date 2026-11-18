@@ -3,60 +3,53 @@ package com.imfinix.look
 import android.app.Activity
 import android.app.WallpaperManager
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.LinearGradient
-import android.graphics.Paint
-import android.graphics.RadialGradient
-import android.graphics.Shader
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 
 class LockScreenActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val col = Ui.root(this)
-        Ui.header(col, "Tela de Bloqueio", "Estilize sua lockscreen dentro do que o Android permite sem root")
+        Ui.header(col, "Tela de Bloqueio", "Estilo LockStar: deixe a lockscreen com a sua cara")
 
-        Ui.section(col, "Aplicar")
-        Ui.card(col, "🌌", "Wallpaper só na bloqueio", "Aplica um gradiente escuro exclusivo na tela de bloqueio") { applyLockWallpaper() }
-        Ui.card(col, "🔒", "Configurações de bloqueio", "Tipo de bloqueio, biometria e notificações na lockscreen") {
-            openSettings(Settings.ACTION_SECURITY_SETTINGS)
+        Ui.section(col, "Wallpaper da lockscreen")
+        Ui.note(col, "Aplique um wallpaper exclusivo só na tela de bloqueio, sem mexer na tela inicial. Escolha o estilo no Estúdio de Wallpapers.")
+        Ui.button(col, "🌌 Abrir Estúdio de Wallpapers") {
+            startActivity(Intent(this, WallpapersActivity::class.java))
         }
-        Ui.card(col, "🔔", "Notificações na lockscreen", "Escolha o que aparece com a tela bloqueada") {
-            openSettings("android.settings.LOCK_SCREEN_SETTINGS")
+        Ui.button(col, "🔀 Usar o wallpaper atual nas duas telas", primary = false) {
+            try {
+                val wm = WallpaperManager.getInstance(this)
+                val d = wm.drawable
+                if (d != null) {
+                    wm.setBitmap((d as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                        ?: throw IllegalStateException("sem bitmap"), null, true, WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
+                    Ui.toast(this, "Aplicado nas duas telas ✅")
+                }
+            } catch (e: Exception) {
+                Ui.toast(this, "Não consegui aplicar: ${e.message}")
+            }
         }
 
-        Ui.section(col, "Limites sem root")
-        Ui.card(col, "ℹ️", "Relógio e layout da lockscreen", "Trocar a posição e o estilo do relógio da lockscreen exige root ou Shizuku. No XOS, parte disso fica no app Temas.") { }
-    }
-
-    private fun applyLockWallpaper() {
-        try {
-            val dm = resources.displayMetrics
-            val w = dm.widthPixels; val h = dm.heightPixels
-            val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-            val cv = Canvas(b)
-            val p = Paint(Paint.ANTI_ALIAS_FLAG)
-            p.shader = LinearGradient(0f, 0f, 0f, h.toFloat(), 0xFF05070C.toInt(), 0xFF0E1526.toInt(), Shader.TileMode.CLAMP)
-            cv.drawRect(0f, 0f, w.toFloat(), h.toFloat(), p)
-            val g = Paint(Paint.ANTI_ALIAS_FLAG)
-            g.shader = RadialGradient(w / 2f, h * 0.25f, w * 0.75f, 0x402F4BFF, android.graphics.Color.TRANSPARENT, Shader.TileMode.CLAMP)
-            cv.drawRect(0f, 0f, w.toFloat(), h.toFloat(), g)
-            WallpaperManager.getInstance(this).setBitmap(b, null, true, WallpaperManager.FLAG_LOCK)
-            Toast.makeText(this, "Wallpaper da tela de bloqueio aplicado", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            Toast.makeText(this, "Não foi possível aplicar neste aparelho", Toast.LENGTH_SHORT).show()
+        Ui.section(col, "Ajustes de bloqueio")
+        Ui.card(col, "🔔", "Notificações na lockscreen", "Escolha o que aparece quando o aparelho está bloqueado", 1) {
+            startActivity(Intent("android.settings.NOTIFICATION_SETTINGS"))
         }
-    }
-
-
-    private fun openSettings(action: String) {
-        try {
-            startActivity(Intent(action))
-        } catch (e: Exception) {
-            Toast.makeText(this, "Esta tela não existe neste aparelho", Toast.LENGTH_SHORT).show()
+        Ui.card(col, "🔐", "Bloqueio de tela e biometria", "Senha, PIN, padrão, digital e rosto", 2) {
+            startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
         }
+        Ui.card(col, "⏲️", "Tempo para bloquear", "Controle em quanto tempo a tela apaga e o aparelho bloqueia", 3) {
+            startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS))
+        }
+        Ui.card(col, "⌚", "Estilo do relógio da lockscreen", "O XOS tem estilos próprios em Configurações > Tela de bloqueio", 4) {
+            try {
+                startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS))
+            } catch (e: Exception) {
+                Ui.toast(this, "Abra Configurações > Tela de bloqueio no XOS")
+            }
+        }
+
+        Ui.section(col, "Limite sem root")
+        Ui.note(col, "Mover o relógio, trocar atalhos e editar o layout da lockscreen (como o LockStar faz na Samsung) exige root ou Shizuku, porque o XOS não expõe essas opções para apps. O ImfinixLook cobre tudo que é permitido oficialmente.")
     }
 }

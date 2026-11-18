@@ -9,9 +9,11 @@ class NotificationLogService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         try {
+            if (sbn.packageName == packageName) return
+            if (sbn.isOngoing) return
             val n = sbn.notification ?: return
-            val title = n.extras.getCharSequence("android.title")?.toString() ?: ""
-            val text = n.extras.getCharSequence("android.text")?.toString() ?: ""
+            val title = n.extras.getCharSequence("android.title")?.toString()?.trim() ?: ""
+            val text = n.extras.getCharSequence("android.text")?.toString()?.trim() ?: ""
             if (title.isEmpty() && text.isEmpty()) return
 
             val prefs = getSharedPreferences("notif_log", MODE_PRIVATE)
@@ -23,7 +25,7 @@ class NotificationLogService : NotificationListenerService() {
             o.put("time", sbn.postTime)
             val out = JSONArray()
             out.put(o)
-            val max = minOf(arr.length(), 99)
+            val max = minOf(arr.length(), 149)
             for (i in 0 until max) out.put(arr.get(i))
             prefs.edit().putString("items", out.toString()).apply()
         } catch (_: Exception) {

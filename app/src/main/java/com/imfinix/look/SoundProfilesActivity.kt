@@ -1,81 +1,155 @@
 package com.imfinix.look
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
 import android.provider.Settings
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.SeekBar
-import android.widget.TextView
-import android.widget.Toast
+import android.text.InputType
+import android.widget.EditText
+import org.json.JSONArray
+import org.json.JSONObject
 
 class SoundProfilesActivity : Activity() {
+
+    private lateinit var audio: AudioManager
+    private val streams = listOf(
+        Triple("Toque e notificações", "🔔", AudioManager.STREAM_RING),
+        Triple("Mídia", "🎵", AudioManager.STREAM_MUSIC),
+        Triple("Alarme", "⏰", AudioManager.STREAM_ALARM),
+        Triple("Chamadas", "📞", AudioManager.STREAM_VOICE_CALL)
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val col = Ui.root(this)
-        Ui.header(col, "Perfis de Som", "Alterne o perfil e ajuste os volumes em um só lugar")
+        audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        build()
+    }
 
-        Ui.section(col, "Perfil")
-        Ui.card(col, "🔔", "Som normal", "Toque e notificações com som") { setMode(am, AudioManager.RINGER_MODE_NORMAL, "Perfil: som normal") }
-        Ui.card(col, "📳", "Vibrar", "Sem som, só vibração") { setMode(am, AudioManager.RINGER_MODE_VIBRATE, "Perfil: vibrar") }
-        Ui.card(col, "🔇", "Silencioso", "Sem som nem vibração") { setMode(am, AudioManager.RINGER_MODE_SILENT, "Perfil: silencioso") }
+    private fun build() {
+        val col = Ui.root(this)
+        Ui.header(col, "Perfis de Som", "Estilo SoundAssistant: todos os volumes em uma tela")
+
+        Ui.section(col, "Modo de toque")
+        val mode = audio.ringerMode
+        val modes = listOf(
+            Triple(AudioManager.RINGER_MODE_NORMAL, "🔊", "Normal"),
+            Triple(AudioManager.RINGER_MODE_VIBRATE, "📳", "Vibrar"),
+            Triple(AudioManager.RINGER_MODE_SILENT, "🔇", "Silencioso")
+        )
+        val row = android.widget.LinearLayout(this)
+        row.orientation = android.widget.LinearLayout.HORIZONTAL
+        val rlp = android.widget.LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+        rlp.bottomMargin = Ui.dp(this, 12)
+        row.layoutParams = rlp
+        modes.forEachIndexed { i, (m, emoji, name) ->
+            val chip = android.widget.TextView(this)
+            chip.text = "$emoji\n$name"
+            chip.textSize = 13f
+            chip.gravity = android.view.Gravity.CENTER
+            val bg = Ui.cardBg(this, 14f)
+            if (mode == m) {
+                bg.setStroke(Ui.dp(this, 2), Ui.accent(this))
+                chip.setTextColor(Ui.accent(this))
+            } else {
+                chip.setTextColor(Ui.SUB)
+            }
+            chip.background = bg
+            val clp = android.widget.LinearLayout.LayoutParams(0, Ui.dp(this, 56), 1f)
+            if (i < modes.size - 1) clp.rightMargin = Ui.dp(this, 8)
+            chip.layoutParams = clp
+            chip.setOnClickListener {
+                try {
+                    audio.ringerMode = m
+                    build()
+                } catch (e: Exception) {
+                    Ui.toast(this, "Não consegui mudar: ${e.message}")
+                }
+            }
+            row.addView(chip)
+        }
+        col.addView(row)
+        Ui.card(col, "🔕", "Não perturbe", "Configure exceções e horários de silêncio total", 1) {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+        }
 
         Ui.section(col, "Volumes")
-        addVolume(col, am, "Mídia", AudioManager.STREAM_MUSIC)
-        addVolume(col, am, "Toque", AudioManager.STREAM_RING)
-        addVolume(col, am, "Alarme", AudioManager.STREAM_ALARM)
-
-        Ui.section(col, "Mais")
-        Ui.card(col, "📵", "Não perturbe", "Regras e exceções do modo DND") {
-            try { startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) } catch (e: Exception) {
-                Toast.makeText(this, "Esta tela não existe neste aparelho", Toast.LENGTH_SHORT).show()
+        streams.forEach { (label, emoji, stream) ->
+            val max = audio.getStreamMaxVolume(stream)
+            val cur = audio.getStreamVolume(stream)
+            Ui.slider(col, label, emoji, max, cur) { v ->
+                try {
+                    audio.setStreamVolume(stream, v, 0)
+                } catch (e: Exception) {
+                    Ui.toast(this, "Não consegui ajustar: ${e.message}")
+                }
             }
         }
-    }
 
-    private fun setMode(am: AudioManager, mode: Int, msg: String) {
-        try {
-            am.ringerMode = mode
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            Toast.makeText(this, "O aparelho bloqueou a troca de perfil", Toast.LENGTH_SHORT).show()
+        Ui.section(col, "Perfis salvos")
+        val prefs = getSharedPreferences("sound_profiles", Context.MODE_PRIVATE)
+        val profiles = JSONObject(prefs.getString("profiles", "{}"))
+        val names = profiles.keys().asSequence().toList()
+        if (names.isEmpty()) {
+            Ui.note(col, "Nenhum perfil ainda. Ajuste os volumes acima e salve como perfil, por exemplo \"Trabalho\" ou \"Noite\".")
         }
+        names.forEachIndexed { idx, name ->
+            Ui.card(col, "🎚️", name, "Toque para aplicar • segure para apagar", idx) {
+                applyProfile(profiles.getJSONObject(name))
+                Ui.toast(this, "Perfil \"$name\" aplicado 🎧")
+            }.setOnLongClickListener {
+                AlertDialog.Builder(this)
+                    .setTitle("Apagar perfil")
+                    .setMessage("Apagar o perfil \"$name\"?")
+                    .setPositiveButton("Apagar") { _, _ ->
+                        profiles.remove(name)
+                        prefs.edit().putString("profiles", profiles.toString()).apply()
+                        build()
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+                true
+            }
+        }
+        Ui.button(col, "💾 Salvar volumes atuais como perfil") {
+            val input = EditText(this)
+            input.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            input.hint = "Nome do perfil"
+            input.setTextColor(Ui.TEXT)
+            input.setHintTextColor(Ui.SUB)
+            AlertDialog.Builder(this)
+                .setTitle("Novo perfil")
+                .setView(input)
+                .setPositiveButton("Salvar") { _, _ ->
+                    val name = input.text.toString().trim()
+                    if (name.isNotEmpty()) {
+                        val o = JSONObject()
+                        streams.forEach { (_, _, stream) ->
+                            o.put(stream.toString(), audio.getStreamVolume(stream))
+                        }
+                        profiles.put(name, o)
+                        prefs.edit().putString("profiles", profiles.toString()).apply()
+                        build()
+                    }
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+
+        Ui.note(col, "Volume individual por app e equalizador fino exigem APIs que só a fabricante libera; por isso ficam de fora do escopo sem root.")
     }
 
-    private fun addVolume(col: LinearLayout, am: AudioManager, name: String, stream: Int) {
-        val box = LinearLayout(this)
-        box.orientation = LinearLayout.VERTICAL
-        val bg = android.graphics.drawable.GradientDrawable()
-        bg.setColor(Ui.CARD)
-        bg.cornerRadius = Ui.dp(this, 18).toFloat()
-        box.background = bg
-        val pad = Ui.dp(this, 18)
-        box.setPadding(pad, pad, pad, pad)
-        val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        lp.bottomMargin = Ui.dp(this, 14)
-        box.layoutParams = lp
-
-        val label = TextView(this)
-        label.text = name
-        label.textSize = 15f
-        label.setTextColor(Ui.TEXT)
-        box.addView(label)
-
-        val sb = SeekBar(this)
-        sb.max = am.getStreamMaxVolume(stream)
-        sb.progress = am.getStreamVolume(stream)
-        sb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(s: SeekBar?, v: Int, fromUser: Boolean) {
-                if (fromUser) try { am.setStreamVolume(stream, v, 0) } catch (_: Exception) {}
+    private fun applyProfile(o: JSONObject) {
+        streams.forEach { (_, _, stream) ->
+            val key = stream.toString()
+            if (o.has(key)) {
+                try {
+                    audio.setStreamVolume(stream, o.getInt(key), AudioManager.FLAG_SHOW_UI)
+                } catch (_: Exception) {
+                }
             }
-            override fun onStartTrackingTouch(s: SeekBar?) {}
-            override fun onStopTrackingTouch(s: SeekBar?) {}
-        })
-        box.addView(sb)
-        col.addView(box)
+        }
     }
 }

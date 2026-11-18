@@ -6,7 +6,7 @@
     android:gravity="center_vertical"
     android:paddingStart="20dp"
     android:paddingEnd="20dp"
-    android:background="#F20B0E14">
+    android:background="@drawable/widget_bg">
 
     <TextClock
         android:id="@+id/widget_time_accent"

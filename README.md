@@ -1,25 +1,25 @@
 # ImfinixLook
 
-Hub de personalização estilo Good Lock, feito para Infinix com XOS (Android 14). Projeto original: nenhum código ou asset da Samsung foi usado. Testado para compilar no Android 14 (API 34), minSdk 26.
+Hub completo de personalização estilo Good Lock, feito para Infinix com XOS (Android 14). Projeto 100% original: nenhum código ou asset da Samsung foi usado, a inspiração é apenas conceitual. Kotlin puro, sem dependências externas, minSdk 26 / targetSdk 34.
 
-## Módulos e equivalência com o Good Lock
+## Módulos
 
-| Módulo ImfinixLook | Inspiração (Good Lock) | O que faz | Limite sem root |
+| Módulo ImfinixLook | Inspiração (Good Lock) | O que faz de verdade | Limite sem root |
 |---|---|---|---|
-| Tela de Bloqueio | LockStar | Wallpaper exclusivo da lockscreen, atalhos para configurações de bloqueio e notificações na lockscreen | Reposicionar relógio/layout da lockscreen exige root/Shizuku |
-| Wallpapers | Wonderland (parte) | Gradientes escuros minimalistas gerados no aparelho, aplicados com um toque | Wallpapers animados/parallax exigem live wallpaper (roadmap) |
-| Estilos de Relógio | ClockFace | Três widgets de relógio para a home: Gigante, Minimal e Neon (fixação com um toque) | Faces para a lockscreen/Always-On exigem root |
-| Temas e Ícones | Theme Park | Orienta a combinação de wallpaper + ícones monocromáticos + temas da loja XOS | Icon packs de terceiros exigem launcher compatível (Nova/Lawnchair) |
-| Ajustes Rápidos | QuickStar (parte) | Atalhos diretos para telas de configuração (tela, som, notificações, bateria, segurança) | Editar os tiles do painel rápido exige root/Shizuku |
-| Painel Rápido | RegiStar / Settings Search | Configurações escondidas: opções do desenvolvedor, painel de privacidade, apps padrão, acessos especiais, DND | - |
-| Perfis de Som | SoundAssistant | Perfis normal/vibrar/silencioso e todos os volumes em uma tela | Volume por app e equalizador exigem APIs de terceiros/root |
-| Gestos e Atalhos | One Hand Operation+ | Atalhos para navegação por gestos e gestos do XOS | Gestos de borda personalizados exigem root/Shizuku/acessibilidade |
-| Histórico de Notificações | NotiStar | Registra e lista as notificações recebidas (após liberar o acesso a notificações) | - |
-| Dicas XOS | - | Truques de personalização, gestos e bateria para o XOS 14 | - |
+| Estúdio de Wallpapers | Wonderland | Gera wallpapers (Aurora, Oceano, Pôr do Sol, Neon, Minimal, Galáxia) na resolução exata da tela e aplica na home, lockscreen ou ambas | Wallpapers animados exigem live wallpaper (roadmap) |
+| Tela de Bloqueio | LockStar | Wallpaper exclusivo da lockscreen + atalhos para bloqueio, biometria e notificações na lockscreen | Reposicionar relógio/layout da lockscreen exige root/Shizuku |
+| Relógios | ClockFace | 5 widgets (Gigante, Minimal, Neon, Digital Data, Analógico) com prévia ao vivo e fixação em 1 toque + Relógio de Mesa (tela cheia) | Faces para lockscreen/Always-On exigem root |
+| Temas | Theme Park | Paleta de cor que repinta o app inteiro na hora (6 opções) + combinações de wallpaper/ícones/fonte | Temas do sistema inteiro exigem loja do XOS ou root |
+| Ajustes Rápidos | QuickStar | Controle real de brilho, tempo de tela e rotação (com permissão de escrita) + 12 atalhos do sistema | Editar tiles do painel rápido exige root/Shizuku |
+| Painel Rápido | RegiStar | 12 configurações escondidas: privacidade, acessos especiais, uso, DND, desenvolvedor, apps padrão e mais | - |
+| Perfis de Som | SoundAssistant | Sliders de todos os volumes + modo de toque + perfis salvos (Trabalho, Noite...) aplicados com 1 toque | Volume por app e equalizador exigem APIs da fabricante |
+| Gestos | One Hand Operation+ | Alça de Borda: pílula flutuante em qualquer tela que abre seus apps com o polegar + abridor de apps | Gestos de borda avançados exigem acessibilidade/root |
+| Notificações | NotiStar | Histórico funcional via NotificationListenerService, com ícone do app, horário e limpeza | - |
+| Dicas XOS | - | 15 truques de personalização, gestos, bateria e sistema | - |
 
 ## Build
 
-O APK é compilado automaticamente pelo GitHub Actions a cada push (`.github/workflows/build.yml`). Baixe o artefato `imfinixlook-debug-apk` na aba Actions.
+CI: o GitHub Actions compila o APK a cada push e publica a release automaticamente a cada tag `v*` (`.github/workflows/build.yml`).
 
 Build local:
 
@@ -32,14 +32,18 @@ Requer JDK 17 e Android SDK 34.
 
 ## Instalação no celular
 
-1. Baixe o APK no Infinix.
+1. Baixe o APK da aba [Releases](https://github.com/deabreusoaresdossantos-del/imfinixlook/releases).
 2. Permita "instalar apps de fontes desconhecidas" para o navegador/gerenciador de arquivos.
 3. Abra o APK e instale.
-4. Para o Histórico de Notificações: abra o módulo, toque em "Liberar acesso" e ative o ImfinixLook.
+4. Libere as permissões opcionais dentro do app, conforme o módulo:
+   - **Notificações**: acesso a notificações (para o histórico)
+   - **Ajustes Rápidos**: modificar configurações do sistema (para brilho/tempo de tela/rotação)
+   - **Gestos**: sobrepor a outros apps (para a Alça de Borda)
 
 ## Detalhes
 
 - Package: `com.imfinix.look`
-- minSdk 26, targetSdk 34
-- Kotlin, sem dependências externas (somente framework Android)
+- Kotlin, somente framework Android (sem AndroidX, sem libs)
+- Permissões: SET_WALLPAPER e SYSTEM_ALERT_WINDOW (somente para a Alça de Borda)
+- Dados: tudo local (SharedPreferences); nenhum dado sai do aparelho
 - Licença: MIT

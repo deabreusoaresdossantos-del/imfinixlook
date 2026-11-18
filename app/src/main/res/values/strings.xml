@@ -4,4 +4,6 @@
     <string name="widget_name">Relógio Gigante</string>
     <string name="widget_thin_name">Relógio Minimal</string>
     <string name="widget_accent_name">Relógio Neon</string>
+    <string name="widget_digital_name">Relógio Digital Data</string>
+    <string name="widget_analog_name">Relógio Analógico</string>
 </resources>

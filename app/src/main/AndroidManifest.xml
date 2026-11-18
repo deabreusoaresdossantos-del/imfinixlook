@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -19,16 +27,19 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".WallpapersActivity" android:exported="false" />
+        <activity android:name=".LockScreenActivity" android:exported="false" />
+        <activity android:name=".ClockStylesActivity" android:exported="false" />
+        <activity android:name=".AmbientClockActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".ThemesActivity" android:exported="false" />
         <activity android:name=".QuickSettingsActivity" android:exported="false" />
         <activity android:name=".QuickPanelActivity" android:exported="false" />
-        <activity android:name=".LockScreenActivity" android:exported="false" />
-        <activity android:name=".WallpapersActivity" android:exported="false" />
-        <activity android:name=".ClockStylesActivity" android:exported="false" />
         <activity android:name=".SoundProfilesActivity" android:exported="false" />
         <activity android:name=".GesturesActivity" android:exported="false" />
-        <activity android:name=".ThemesActivity" android:exported="false" />
+        <activity android:name=".AppPickerActivity" android:exported="false" />
         <activity android:name=".NotificationHistoryActivity" android:exported="false" />
         <activity android:name=".TipsActivity" android:exported="false" />
+        <activity android:name=".AboutActivity" android:exported="false" />
 
         <service
             android:name=".NotificationLogService"
@@ -38,6 +49,10 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <service
+            android:name=".EdgeHandleService"
+            android:exported="false" />
 
         <receiver
             android:name=".ClockWidgetProvider"
@@ -73,6 +88,30 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/clock_widget_accent_info" />
+        </receiver>
+
+        <receiver
+            android:name=".ClockWidgetDigitalProvider"
+            android:exported="false"
+            android:label="@string/widget_digital_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/clock_widget_digital_info" />
+        </receiver>
+
+        <receiver
+            android:name=".ClockWidgetAnalogProvider"
+            android:exported="false"
+            android:label="@string/widget_analog_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/clock_widget_analog_info" />
         </receiver>
     </application>
 </manifest>

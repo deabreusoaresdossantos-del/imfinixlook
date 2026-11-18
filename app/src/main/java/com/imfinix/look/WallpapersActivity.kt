@@ -2,87 +2,116 @@ package com.imfinix.look
 
 import android.app.Activity
 import android.app.WallpaperManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.LinearGradient
-import android.graphics.Paint
-import android.graphics.RadialGradient
-import android.graphics.Shader
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.TextView
 
 class WallpapersActivity : Activity() {
 
-    private data class Wp(val name: String, val make: (Int, Int) -> Bitmap)
-
-    private fun gradient(w: Int, h: Int, c1: Int, c2: Int, glow: Int?): Bitmap {
-        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        val cv = Canvas(b)
-        val p = Paint(Paint.ANTI_ALIAS_FLAG)
-        p.shader = LinearGradient(0f, 0f, 0f, h.toFloat(), c1, c2, Shader.TileMode.CLAMP)
-        cv.drawRect(0f, 0f, w.toFloat(), h.toFloat(), p)
-        if (glow != null) {
-            val g = Paint(Paint.ANTI_ALIAS_FLAG)
-            g.shader = RadialGradient(w / 2f, h * 0.32f, w * 0.7f, glow, Color.TRANSPARENT, Shader.TileMode.CLAMP)
-            cv.drawRect(0f, 0f, w.toFloat(), h.toFloat(), g)
-        }
-        return b
-    }
+    private var selected = 0
+    private var preview: ImageView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val list = listOf(
-            Wp("Meia-noite") { w, h -> gradient(w, h, 0xFF05070C.toInt(), 0xFF10141F.toInt(), 0x332F3BFF) },
-            Wp("Azul profundo") { w, h -> gradient(w, h, 0xFF060913.toInt(), 0xFF0E1A33.toInt(), 0x402F4BFF) },
-            Wp("Grafite") { w, h -> gradient(w, h, 0xFF0A0A0C.toInt(), 0xFF1A1C22.toInt(), null) },
-            Wp("Aurora escura") { w, h -> gradient(w, h, 0xFF070B10.toInt(), 0xFF0D2226.toInt(), 0x3310C9B0) },
-            Wp("Roxo espacial") { w, h -> gradient(w, h, 0xFF0A0712.toInt(), 0xFF1B1030.toInt(), 0x335E3BFF) },
-            Wp("Preto puro") { w, h -> gradient(w, h, 0xFF000000.toInt(), 0xFF000000.toInt(), null) },
-        )
-
-        val col = Ui.root(this)
-        Ui.header(col, "Wallpapers", "Gradientes escuros gerados pelo app. Toque para aplicar.")
-
-        val sw = resources.displayMetrics.widthPixels
-        val pw = (sw - Ui.dp(this, 20) * 2 - Ui.dp(this, 12)) / 2
-        val ph = (pw * 16 / 9)
-
-        var row: LinearLayout? = null
-        list.forEachIndexed { i, wp ->
-            if (i % 2 == 0) {
-                row = LinearLayout(this)
-                val rlp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                rlp.bottomMargin = Ui.dp(this, 12)
-                row!!.layoutParams = rlp
-                col.addView(row)
-            }
-            val iv = ImageView(this)
-            val bmp = wp.make(pw, ph)
-            iv.setImageBitmap(bmp)
-            iv.scaleType = ImageView.ScaleType.CENTER_CROP
-            val lp = LinearLayout.LayoutParams(pw, ph)
-            if (i % 2 == 0) lp.marginEnd = Ui.dp(this, 12)
-            iv.layoutParams = lp
-            iv.setOnClickListener { apply(wp) }
-            row!!.addView(iv)
-        }
-
-        Ui.section(col, "Como aplicar")
-        Ui.card(col, "👆", "Toque em um wallpaper", "Ele vira o fundo da tela inicial e de bloqueio. São gerados no aparelho, sem baixar nada.") { }
+        build()
     }
 
-    private fun apply(wp: Wp) {
+    private fun build() {
+        val col = Ui.root(this)
+        Ui.header(col, "Estúdio de Wallpapers", "Gradientes gerados no aparelho, na resolução exata da sua tela")
+
+        val frame = LinearLayout(this)
+        frame.orientation = LinearLayout.VERTICAL
+        frame.gravity = Gravity.CENTER_HORIZONTAL
+        frame.background = Ui.cardBg(this, 26f)
+        frame.setPadding(Ui.dp(this, 14), Ui.dp(this, 14), Ui.dp(this, 14), Ui.dp(this, 14))
+        val flp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        flp.bottomMargin = Ui.dp(this, 16)
+        frame.layoutParams = flp
+
+        val img = ImageView(this)
+        val h = Ui.dp(this, 260)
+        img.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h)
+        img.scaleType = ImageView.ScaleType.CENTER_CROP
+        img.clipToOutline = true
+        img.background = Ui.cardBg(this, 20f)
+        frame.addView(img)
+        preview = img
+
+        val label = TextView(this)
+        label.textSize = 14f
+        label.setTextColor(Ui.SUB)
+        label.gravity = Gravity.CENTER
+        val llp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        llp.topMargin = Ui.dp(this, 10)
+        label.layoutParams = llp
+        frame.addView(label)
+        col.addView(frame)
+        Ui.animIn(frame, 0)
+
+        fun refreshPreview() {
+            val style = WallpaperEngine.styles[selected]
+            img.setImageBitmap(WallpaperEngine.generate(this, style.id))
+            label.text = "${style.emoji} ${style.name} - ${style.desc}"
+        }
+        refreshPreview()
+
+        Ui.section(col, "Estilos")
+        val styles = WallpaperEngine.styles
+        var i = 0
+        while (i < styles.size) {
+            val row = LinearLayout(this)
+            row.orientation = LinearLayout.HORIZONTAL
+            val rlp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            rlp.bottomMargin = Ui.dp(this, 10)
+            row.layoutParams = rlp
+            for (j in 0..2) {
+                if (i + j < styles.size) {
+                    val s = styles[i + j]
+                    val chip = TextView(this)
+                    chip.text = "${s.emoji}\n${s.name}"
+                    chip.textSize = 12f
+                    chip.gravity = Gravity.CENTER
+                    chip.setTextColor(Ui.TEXT)
+                    val bg = Ui.cardBg(this, 16f)
+                    if (i + j == selected) {
+                        bg.setStroke(Ui.dp(this, 2), Ui.accent(this))
+                    }
+                    chip.background = bg
+                    val clp = LinearLayout.LayoutParams(0, Ui.dp(this, 62), 1f)
+                    if (j < 2) clp.rightMargin = Ui.dp(this, 10)
+                    chip.layoutParams = clp
+                    val which = i + j
+                    chip.setOnClickListener {
+                        selected = which
+                        build()
+                    }
+                    row.addView(chip)
+                }
+            }
+            col.addView(row)
+            i += 3
+        }
+
+        Ui.section(col, "Aplicar")
+        Ui.button(col, "🏠 Tela inicial") { apply(WallpaperManager.FLAG_SYSTEM) }
+        Ui.button(col, "🔒 Tela de bloqueio", primary = false) { apply(WallpaperManager.FLAG_LOCK) }
+        Ui.button(col, "✨ As duas telas", primary = false) { apply(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK) }
+        Ui.note(col, "Os wallpapers são criados localmente pelo ImfinixLook: nada é baixado da internet. Cada estilo usa a resolução exata da sua tela.")
+    }
+
+    private fun apply(which: Int) {
         try {
-            val dm = resources.displayMetrics
-            val bmp = wp.make(dm.widthPixels, dm.heightPixels)
-            WallpaperManager.getInstance(this).setBitmap(bmp)
-            Toast.makeText(this, "Wallpaper aplicado: ${wp.name}", Toast.LENGTH_SHORT).show()
+            val style = WallpaperEngine.styles[selected]
+            val bmp = WallpaperEngine.generate(this, style.id)
+            WallpaperManager.getInstance(this).setBitmap(bmp, null, true, which)
+            Ui.toast(this, "Wallpaper ${style.name} aplicado ✅")
         } catch (e: Exception) {
-            Toast.makeText(this, "Não foi possível aplicar neste aparelho", Toast.LENGTH_SHORT).show()
+            Ui.toast(this, "Não consegui aplicar: ${e.message}")
         }
     }
 }

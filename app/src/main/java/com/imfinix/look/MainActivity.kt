@@ -3,50 +3,61 @@ package com.imfinix.look
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import java.util.Calendar
 
 class MainActivity : Activity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val col = Ui.root(this)
-        Ui.header(col, "ImfinixLook", "Hub de personalização estilo Good Lock para Infinix com XOS")
 
-        Ui.section(col, "Aparência")
-        Ui.card(col, "🔒", "Tela de Bloqueio", "Wallpaper exclusivo da lockscreen e ajustes de bloqueio") {
-            startActivity(Intent(this, LockScreenActivity::class.java))
+        val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+            in 5..11 -> "Bom dia"
+            in 12..17 -> "Boa tarde"
+            else -> "Boa noite"
         }
-        Ui.card(col, "🌑", "Wallpapers", "Gradientes escuros minimalistas gerados no app, prontos para aplicar") {
-            startActivity(Intent(this, WallpapersActivity::class.java))
-        }
-        Ui.card(col, "🕐", "Estilos de Relógio", "Três faces de relógio para a tela inicial: Gigante, Minimal e Neon") {
-            startActivity(Intent(this, ClockStylesActivity::class.java))
-        }
-        Ui.card(col, "🎨", "Temas e Ícones", "Combine wallpaper, ícones monocromáticos e fonte") {
-            startActivity(Intent(this, ThemesActivity::class.java))
-        }
+        Ui.hero(col, "$greeting! Vamos deixar seu Infinix com a sua cara", "ImfinixLook 2.0 - hub completo de personalização para o XOS", "✨")
 
-        Ui.section(col, "Sistema")
-        Ui.card(col, "⚡", "Ajustes Rápidos", "Atalhos diretos para tela, som, notificações, bateria e mais") {
-            startActivity(Intent(this, QuickSettingsActivity::class.java))
-        }
-        Ui.card(col, "🎛️", "Painel Rápido", "Configurações escondidas e avançadas do Android em um só lugar") {
-            startActivity(Intent(this, QuickPanelActivity::class.java))
-        }
-        Ui.card(col, "🔊", "Perfis de Som", "Alterne normal/vibrar/silencioso e ajuste todos os volumes") {
-            startActivity(Intent(this, SoundProfilesActivity::class.java))
-        }
-        Ui.card(col, "✋", "Gestos e Atalhos", "Navegação por gestos e atalhos do XOS") {
-            startActivity(Intent(this, GesturesActivity::class.java))
-        }
-        Ui.card(col, "🔔", "Histórico de Notificações", "Recupere notificações dispensadas sem querer") {
-            startActivity(Intent(this, NotificationHistoryActivity::class.java))
+        val prefs = getSharedPreferences("imfinix_state", MODE_PRIVATE)
+        if (!prefs.getBoolean("seen_v2", false)) {
+            Ui.card(col, "🎉", "Novidades da versão 2.0", "Visual novo, estúdio de wallpapers, 5 relógios, temas de cor, controle real de brilho, perfis de som, alça de borda e muito mais.") {
+                prefs.edit().putBoolean("seen_v2", true).apply()
+                recreate()
+            }
         }
 
-        Ui.section(col, "Aprender")
-        Ui.card(col, "💡", "Dicas XOS", "Truques do XOS 14 no Infinix Hot 50i") {
-            startActivity(Intent(this, TipsActivity::class.java))
+        Ui.section(col, "Módulos")
+        val modules = listOf(
+            Triple("🌌", "Wallpapers", "Estúdio de gradientes"),
+            Triple("🔒", "Tela de Bloqueio", "Wallpaper e ajustes"),
+            Triple("🕐", "Relógios", "5 estilos + modo mesa"),
+            Triple("🎨", "Temas", "Cores do app inteiro"),
+            Triple("⚡", "Ajustes Rápidos", "Brilho, tela e atalhos"),
+            Triple("🎛️", "Painel Rápido", "Configs escondidas"),
+            Triple("🔊", "Perfis de Som", "Volumes e perfis"),
+            Triple("✋", "Gestos", "Alça de borda e apps"),
+            Triple("🔔", "Notificações", "Histórico completo"),
+            Triple("💡", "Dicas XOS", "Truques do sistema")
+        )
+        Ui.grid(col, modules, 2) { which ->
+            val target = when (which) {
+                0 -> WallpapersActivity::class.java
+                1 -> LockScreenActivity::class.java
+                2 -> ClockStylesActivity::class.java
+                3 -> ThemesActivity::class.java
+                4 -> QuickSettingsActivity::class.java
+                5 -> QuickPanelActivity::class.java
+                6 -> SoundProfilesActivity::class.java
+                7 -> GesturesActivity::class.java
+                8 -> NotificationHistoryActivity::class.java
+                else -> TipsActivity::class.java
+            }
+            startActivity(Intent(this, target))
         }
 
         Ui.section(col, "Sobre")
-        Ui.card(col, "✨", "ImfinixLook 1.0", "Projeto original inspirado em hubs de personalização. Feito para XOS / Android 14.") { }
+        Ui.card(col, "💎", "ImfinixLook 2.0", "Projeto original inspirado em hubs de personalização. Feito para XOS / Android 14.", 12) {
+            startActivity(Intent(this, AboutActivity::class.java))
+        }
     }
 }
