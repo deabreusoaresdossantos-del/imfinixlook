@@ -23,7 +23,7 @@ class DepthWallpaperService : WallpaperService() {
         private val tick = object : Runnable {
             override fun run() {
                 drawFrame()
-                if (shown) handler.postDelayed(this, 20000)
+                if (shown) handler.postDelayed(this, if (DepthEngine.prefs(applicationContext).getInt("style", 0) == 8) 1000L else 20000L)
             }
         }
 

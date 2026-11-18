@@ -28,6 +28,109 @@ class DepthActivity : Activity() {
     private var blurFor = -1
     private var fg: Bitmap? = null
     private val ui = Handler(Looper.getMainLooper())
+    private var editSecond = false
+    private var hueBar: android.widget.SeekBar? = null
+    private var satBar: android.widget.SeekBar? = null
+    private var valBar: android.widget.SeekBar? = null
+    private var swatch: android.view.View? = null
+
+    private fun curColorKey(): String {
+        val mode = DepthEngine.prefs(this).getInt("cmode", 0)
+        return if (editSecond && mode == 2) "ccolor2" else "ccolor"
+    }
+
+    private fun setClockColor(v: Int, fromPalette: Boolean) {
+        DepthEngine.prefs(this).edit().putInt(curColorKey(), v).apply()
+        val g = android.graphics.drawable.GradientDrawable()
+        g.setColor(v)
+        g.cornerRadius = Ui.dp(this, 14).toFloat()
+        g.setStroke(Ui.dp(this, 1), android.graphics.Color.argb(120, 255, 255, 255))
+        swatch?.background = g
+        if (fromPalette) {
+            val hsv = FloatArray(3)
+            android.graphics.Color.colorToHSV(v, hsv)
+            hueBar?.progress = hsv[0].toInt()
+            satBar?.progress = (hsv[1] * 100).toInt()
+            valBar?.progress = (hsv[2] * 100).toInt()
+        }
+        refresh()
+    }
+
+    private fun colorUi(col: LinearLayout) {
+        val p = DepthEngine.prefs(this)
+        val mode = p.getInt("cmode", 0).coerceIn(0, 2)
+        val modes = arrayOf("Cor sólida", "Gradiente do tema", "Gradiente de duas cores")
+        Ui.section(col, "Cor do relógio")
+        Ui.button(col, "🎨 Modo: ${modes[mode]}", primary = false) {
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Modo de cor")
+                .setItems(modes) { _, i ->
+                    p.edit().putInt("cmode", i).apply()
+                    recreate()
+                }.show()
+        }
+        if (mode == 1) {
+            Ui.note(col, "O relógio usa o degradê das duas cores do tema atual (troque em Temas).")
+            return
+        }
+        if (mode == 2) {
+            Ui.button(col, if (editSecond) "✏️ Editando a cor 2 (toque para ir à cor 1)" else "✏️ Editando a cor 1 (toque para ir à cor 2)", primary = false) {
+                editSecond = !editSecond
+                recreate()
+            }
+        }
+        val sw = android.view.View(this)
+        val slp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 34))
+        slp.bottomMargin = Ui.dp(this, 10)
+        sw.layoutParams = slp
+        col.addView(sw)
+        swatch = sw
+        val cur = p.getInt(curColorKey(), if (curColorKey() == "ccolor2") android.graphics.Color.parseColor("#F472B6") else android.graphics.Color.WHITE)
+
+        val hues = floatArrayOf(55f, 40f, 25f, 5f, 345f, 320f, 285f, 255f, 225f, 200f, 170f, 130f)
+        val rows = arrayOf(floatArrayOf(0.45f, 1f), floatArrayOf(0.75f, 1f), floatArrayOf(1f, 0.95f), floatArrayOf(1f, 0.75f), floatArrayOf(1f, 0.55f), floatArrayOf(0.9f, 0.35f), floatArrayOf(0.8f, 0.2f))
+        val grays = floatArrayOf(1f, 0.85f, 0.7f, 0.55f, 0.4f, 0.25f, 0.1f)
+        for (r in rows.indices) {
+            val row = LinearLayout(this)
+            row.orientation = LinearLayout.HORIZONTAL
+            row.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            for (cIdx in 0..12) {
+                val color = if (cIdx < 12) android.graphics.Color.HSVToColor(floatArrayOf(hues[cIdx], rows[r][0], rows[r][1]))
+                else android.graphics.Color.HSVToColor(floatArrayOf(0f, 0f, grays[r]))
+                val cell = android.view.View(this)
+                val cl = LinearLayout.LayoutParams(0, Ui.dp(this, 26), 1f)
+                cl.setMargins(Ui.dp(this, 1), Ui.dp(this, 1), Ui.dp(this, 1), Ui.dp(this, 1))
+                cell.layoutParams = cl
+                val g = android.graphics.drawable.GradientDrawable()
+                g.setColor(color)
+                g.cornerRadius = Ui.dp(this, 4).toFloat()
+                cell.background = g
+                cell.setOnClickListener { setClockColor(color, true) }
+                row.addView(cell)
+            }
+            col.addView(row)
+        }
+        val gap = android.view.View(this)
+        gap.layoutParams = LinearLayout.LayoutParams(1, Ui.dp(this, 12))
+        col.addView(gap)
+
+        val hsv = FloatArray(3)
+        android.graphics.Color.colorToHSV(cur, hsv)
+        fun fromSliders() {
+            val h = hueBar?.progress ?: 0
+            val s = satBar?.progress ?: 0
+            val v = valBar?.progress ?: 100
+            setClockColor(android.graphics.Color.HSVToColor(floatArrayOf(h.toFloat(), s / 100f, v / 100f)), false)
+        }
+        hueBar = Ui.slider(col, "Matiz", "🌈", 360, hsv[0].toInt()) { fromSliders() }
+        satBar = Ui.slider(col, "Saturação", "💧", 100, (hsv[1] * 100).toInt()) { fromSliders() }
+        valBar = Ui.slider(col, "Brilho", "🔆", 100, (hsv[2] * 100).toInt()) { fromSliders() }
+        val g0 = android.graphics.drawable.GradientDrawable()
+        g0.setColor(cur)
+        g0.cornerRadius = Ui.dp(this, 14).toFloat()
+        g0.setStroke(Ui.dp(this, 1), android.graphics.Color.argb(120, 255, 255, 255))
+        sw.background = g0
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,16 +176,16 @@ class DepthActivity : Activity() {
         }
 
         Ui.section(col, "Relógio")
-        Ui.button(col, "🔤 Estilo: ${DepthEngine.clockStyles[p.getInt("style", 0)]}", primary = false) {
-            p.edit().putInt("style", (p.getInt("style", 0) + 1) % DepthEngine.clockStyles.size).apply()
-            DepthEngine.bumpRev(this)
-            recreate()
+        Ui.button(col, "🔤 Estilo: ${DepthEngine.clockStyles[p.getInt("style", 0).coerceIn(0, DepthEngine.clockStyles.size - 1)]}", primary = false) {
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Estilo do relógio")
+                .setItems(DepthEngine.clockStyles.toTypedArray()) { _, i ->
+                    p.edit().putInt("style", i).apply()
+                    DepthEngine.bumpRev(this)
+                    recreate()
+                }.show()
         }
-        Ui.button(col, "🎨 Cor: ${DepthEngine.clockColors[p.getInt("color", 0)]}", primary = false) {
-            p.edit().putInt("color", (p.getInt("color", 0) + 1) % DepthEngine.clockColors.size).apply()
-            DepthEngine.bumpRev(this)
-            recreate()
-        }
+        colorUi(col)
         Ui.slider(col, "Tamanho", "📏", 100, p.getInt("size", 70)) {
             p.edit().putInt("size", maxOf(it, 30)).apply()
             refresh()

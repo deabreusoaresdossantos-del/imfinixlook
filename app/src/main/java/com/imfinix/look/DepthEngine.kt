@@ -6,7 +6,12 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PathMeasure
+import android.graphics.RectF
+import android.graphics.Shader
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
@@ -25,8 +30,10 @@ object DepthEngine {
 
     const val PREFS = "imfinix_depth"
 
-    val clockStyles = listOf("Vertical gigante", "Horizontal", "Vertical fino")
-    val clockColors = listOf("Branco", "Cor do tema", "Preto")
+    val clockStyles = listOf(
+        "Vertical gigante", "Horizontal", "Vertical fino", "Sobreposto transparente", "Arco curvo",
+        "Mínimo no canto", "Editorial (data por extenso)", "Neon brilhante", "Com segundos", "Serifado elegante", "Retrô pixel"
+    )
 
     fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -159,50 +166,129 @@ object DepthEngine {
         return Bitmap.createScaledBitmap(up, b.width, b.height, true)
     }
 
-    fun clockColor(c: Context): Int {
-        return when (prefs(c).getInt("color", 0)) {
-            1 -> Theme.current(c).a
-            2 -> Color.parseColor("#14161C")
-            else -> Color.WHITE
+    fun clockColor(c: Context): Int = prefs(c).getInt("ccolor", Color.WHITE)
+
+    fun clockColor2(c: Context): Int = prefs(c).getInt("ccolor2", Color.parseColor("#F472B6"))
+
+    private fun clockPaint(c: Context, alphaPct: Int, y0: Float, y1: Float, tf: Typeface): Paint {
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        p.color = clockColor(c)
+        val mode = prefs(c).getInt("cmode", 0)
+        if (mode == 1) {
+            val t = Theme.current(c)
+            p.shader = LinearGradient(0f, y0, 0f, maxOf(y1, y0 + 1f), t.a, t.b, Shader.TileMode.CLAMP)
+        } else if (mode == 2) {
+            p.shader = LinearGradient(0f, y0, 0f, maxOf(y1, y0 + 1f), clockColor(c), clockColor2(c), Shader.TileMode.CLAMP)
         }
+        p.alpha = alphaPct * 255 / 100
+        p.textAlign = Paint.Align.CENTER
+        p.typeface = tf
+        return p
+    }
+
+    private fun fit(p: Paint, text: String, targetW: Float) {
+        p.textSize = 100f
+        p.textSize = 100f * targetW / p.measureText(text)
+    }
+
+    private fun stacked(c: Context, cv: Canvas, w: Int, top: Float, targetW: Float, tf: Typeface, hh: String, mm: String, alpha: Int, overlap: Float, now: Calendar) {
+        val p = clockPaint(c, alpha, top, top + targetW * 1.6f, tf)
+        fit(p, "00", targetW)
+        val fm = p.fontMetrics
+        val lineH = (fm.descent - fm.ascent) * 0.80f
+        val y1 = top - fm.ascent * 0.85f
+        cv.drawText(hh, w / 2f, y1, p)
+        if (overlap < 1f) p.alpha = p.alpha * 6 / 10
+        cv.drawText(mm, w / 2f, y1 + lineH * overlap, p)
+        p.alpha = alpha * 255 / 100
+        drawDate(c, cv, w, y1 + lineH * overlap + p.textSize * 0.22f, now, p)
+    }
+
+    private fun row(c: Context, cv: Canvas, w: Int, top: Float, targetW: Float, tf: Typeface, text: String, alpha: Int, now: Calendar, glow: Boolean, retro: Boolean): Float {
+        val p = clockPaint(c, alpha, top, top + targetW * 0.4f, tf)
+        fit(p, text, targetW)
+        val fm = p.fontMetrics
+        val y = top - fm.ascent
+        if (retro) {
+            val sh = Paint(p)
+            sh.shader = null
+            sh.color = Color.argb(160, 0, 0, 0)
+            cv.drawText(text, w / 2f + p.textSize * 0.05f, y + p.textSize * 0.05f, sh)
+        }
+        if (glow) p.setShadowLayer(p.textSize * 0.35f, 0f, 0f, clockColor(c))
+        cv.drawText(text, w / 2f, y, p)
+        p.clearShadowLayer()
+        drawDate(c, cv, w, y + p.textSize * 0.28f, now, p)
+        return y
     }
 
     fun drawClock(c: Context, cv: Canvas, w: Int, h: Int, now: Calendar) {
-        val p = prefs(c)
-        val style = p.getInt("style", 0)
-        val sizePct = p.getInt("size", 70).coerceIn(30, 100)
-        val yPct = p.getInt("ypos", 12).coerceIn(0, 80)
-        val alpha = p.getInt("alpha", 100).coerceIn(20, 100)
-        val color = clockColor(c)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.color = color
-        paint.alpha = (alpha * 255 / 100)
-        paint.textAlign = Paint.Align.CENTER
-        val hh = String.format("%02d", now.get(Calendar.HOUR_OF_DAY))
-        val mm = String.format("%02d", now.get(Calendar.MINUTE))
+        val p0 = prefs(c)
+        val style = p0.getInt("style", 0)
+        val sizePct = p0.getInt("size", 70).coerceIn(30, 100)
+        val yPct = p0.getInt("ypos", 12).coerceIn(0, 80)
+        val alpha = p0.getInt("alpha", 100).coerceIn(20, 100)
         val top = h * yPct / 100f
         val targetW = w * sizePct / 100f
-        if (style == 1) {
-            paint.typeface = Typeface.create("sans-serif", Typeface.BOLD)
-            paint.textSize = 100f
-            val tw = paint.measureText("$hh:$mm")
-            paint.textSize = 100f * targetW / tw
-            val fm = paint.fontMetrics
-            cv.drawText("$hh:$mm", w / 2f, top - fm.ascent, paint)
-            drawDate(c, cv, w, top - fm.ascent + paint.textSize * 0.28f, now, paint)
-        } else {
-            paint.typeface = if (style == 2) Typeface.create("sans-serif-thin", Typeface.NORMAL)
-            else Typeface.create("sans-serif-black", Typeface.NORMAL)
-            paint.textSize = 100f
-            val tw = paint.measureText("00")
-            paint.textSize = 100f * targetW / tw
-            val fm = paint.fontMetrics
-            val lineH = (fm.descent - fm.ascent) * 0.80f
-            val y1 = top - fm.ascent * 0.85f
-            cv.drawText(hh, w / 2f, y1, paint)
-            cv.drawText(mm, w / 2f, y1 + lineH, paint)
-            drawDate(c, cv, w, y1 + lineH + paint.textSize * 0.22f, now, paint)
+        val hh = String.format("%02d", now.get(Calendar.HOUR_OF_DAY))
+        val mm = String.format("%02d", now.get(Calendar.MINUTE))
+        val ss = String.format("%02d", now.get(Calendar.SECOND))
+        when (style) {
+            1 -> row(c, cv, w, top, targetW, Typeface.create("sans-serif", Typeface.BOLD), "$hh:$mm", alpha, now, false, false)
+            2 -> stacked(c, cv, w, top, targetW, Typeface.create("sans-serif-thin", Typeface.NORMAL), hh, mm, alpha, 1f, now)
+            3 -> stacked(c, cv, w, top, targetW, Typeface.create("sans-serif-black", Typeface.NORMAL), hh, mm, alpha, 0.55f, now)
+            4 -> {
+                val r = targetW * 0.55f
+                val cx = w / 2f
+                val cy = top + r
+                val path = Path()
+                path.addArc(RectF(cx - r, cy - r, cx + r, cy + r), 200f, 140f)
+                val len = PathMeasure(path, false).length
+                val p = clockPaint(c, alpha, top, top + r, Typeface.create("sans-serif", Typeface.BOLD))
+                fit(p, "$hh:$mm", len * 0.78f)
+                cv.drawTextOnPath("$hh:$mm", path, len / 2f - p.measureText("$hh:$mm") / 2f, 0f, p)
+                drawDate(c, cv, w, cy - r * 0.2f, now, p)
+            }
+            5 -> {
+                val p = clockPaint(c, alpha, top, top + w * 0.2f, Typeface.create("sans-serif-light", Typeface.NORMAL))
+                p.textAlign = Paint.Align.LEFT
+                p.textSize = w * 0.15f * (sizePct / 70f)
+                val x = w * 0.08f
+                val y = top - p.fontMetrics.ascent
+                cv.drawText("$hh:$mm", x, y, p)
+                val d = Paint(p)
+                d.shader = null
+                d.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                d.textSize = p.textSize * 0.32f
+                cv.drawText(dateFull(now), x, y + d.textSize * 1.6f, d)
+            }
+            6 -> {
+                val dias = arrayOf("domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado")
+                val p = clockPaint(c, alpha, top, top + targetW * 0.6f, Typeface.create("serif", Typeface.NORMAL))
+                val wd = dias[now.get(Calendar.DAY_OF_WEEK) - 1]
+                fit(p, wd, targetW)
+                val y1 = top - p.fontMetrics.ascent
+                cv.drawText(wd, w / 2f, y1, p)
+                val d = Paint(p)
+                d.shader = null
+                d.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                d.textSize = p.textSize * 0.38f
+                cv.drawText(dateFull(now), w / 2f, y1 + d.textSize * 1.5f, d)
+                val t = clockPaint(c, alpha, top, top + targetW, Typeface.create("sans-serif-black", Typeface.NORMAL))
+                fit(t, "$hh:$mm", targetW * 0.62f)
+                cv.drawText("$hh:$mm", w / 2f, y1 + d.textSize * 1.5f + t.textSize * 1.25f, t)
+            }
+            7 -> row(c, cv, w, top, targetW, Typeface.create("sans-serif-medium", Typeface.BOLD), "$hh:$mm", alpha, now, true, false)
+            8 -> row(c, cv, w, top, targetW, Typeface.create("sans-serif-condensed", Typeface.BOLD), "$hh:$mm:$ss", alpha, now, false, false)
+            9 -> stacked(c, cv, w, top, targetW, Typeface.create("serif", Typeface.BOLD_ITALIC), hh, mm, alpha, 1f, now)
+            10 -> row(c, cv, w, top, targetW, Typeface.create("monospace", Typeface.BOLD), "$hh:$mm", alpha, now, false, true)
+            else -> stacked(c, cv, w, top, targetW, Typeface.create("sans-serif-black", Typeface.NORMAL), hh, mm, alpha, 1f, now)
         }
+    }
+
+    private fun dateFull(now: Calendar): String {
+        val meses = arrayOf("janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro")
+        return "${now.get(Calendar.DAY_OF_MONTH)} de ${meses[now.get(Calendar.MONTH)]}"
     }
 
     private fun drawDate(c: Context, cv: Canvas, w: Int, y: Float, now: Calendar, base: Paint) {
