@@ -37,6 +37,7 @@ class MainActivity : Activity() {
 
         Ui.section(col, "Módulos")
         val modules = listOf(
+            Triple("🪄", "Profundidade", "Sujeito na frente do relógio"),
             Triple("👑", "Domínio Total", "Animações, status bar, fonte"),
             Triple("🌌", "Wallpapers", "Estúdio de gradientes"),
             Triple("🔒", "Tela de Bloqueio", "Wallpaper e ajustes"),
@@ -51,16 +52,17 @@ class MainActivity : Activity() {
         )
         Ui.grid(col, modules, 2) { which ->
             val target = when (which) {
-                0 -> ControleTotalActivity::class.java
-                1 -> WallpapersActivity::class.java
-                2 -> LockScreenActivity::class.java
-                3 -> ClockStylesActivity::class.java
-                4 -> ThemesActivity::class.java
-                5 -> QuickSettingsActivity::class.java
-                6 -> QuickPanelActivity::class.java
-                7 -> SoundProfilesActivity::class.java
-                8 -> GesturesActivity::class.java
-                9 -> NotificationHistoryActivity::class.java
+                0 -> DepthActivity::class.java
+                1 -> ControleTotalActivity::class.java
+                2 -> WallpapersActivity::class.java
+                3 -> LockScreenActivity::class.java
+                4 -> ClockStylesActivity::class.java
+                5 -> ThemesActivity::class.java
+                6 -> QuickSettingsActivity::class.java
+                7 -> QuickPanelActivity::class.java
+                8 -> SoundProfilesActivity::class.java
+                9 -> GesturesActivity::class.java
+                10 -> NotificationHistoryActivity::class.java
                 else -> TipsActivity::class.java
             }
             startActivity(Intent(this, target))

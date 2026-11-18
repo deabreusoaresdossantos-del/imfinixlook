@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <uses-feature android:name="android.software.live_wallpaper" android:required="false" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -46,6 +48,44 @@
         <activity android:name=".TipsActivity" android:exported="false" />
         <activity android:name=".AboutActivity" android:exported="false" />
         <activity android:name=".ControleTotalActivity" android:exported="false" />
+        <activity android:name=".DepthActivity" android:exported="false" />
+
+        <service
+            android:name=".DepthWallpaperService"
+            android:exported="true"
+            android:label="Imfinix Profundidade"
+            android:permission="android.permission.BIND_WALLPAPER">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/depth_wallpaper" />
+        </service>
+
+        <receiver
+            android:name=".GlassClockProvider"
+            android:exported="false"
+            android:label="Relógio de Vidro">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/glass_clock_info" />
+        </receiver>
+
+        <receiver
+            android:name=".GlassBatteryProvider"
+            android:exported="false"
+            android:label="Bateria de Vidro">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/glass_battery_info" />
+        </receiver>
 
         <provider
             android:name="rikka.shizuku.ShizukuProvider"

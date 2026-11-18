@@ -11,8 +11,8 @@ android {
         applicationId "com.imfinix.look"
         minSdk 26
         targetSdk 34
-        versionCode 6
-        versionName "2.2.2"
+        versionCode 7
+        versionName "2.3.0"
     }
 
     buildTypes {
@@ -32,4 +32,6 @@ android {
 dependencies {
     implementation 'dev.rikka.shizuku:api:13.1.5'
     implementation 'dev.rikka.shizuku:provider:13.1.5'
+    implementation 'com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1'
+    implementation 'com.google.mlkit:segmentation-selfie:16.0.0-beta6'
 }
