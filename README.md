@@ -19,6 +19,9 @@ Hub completo de personalização estilo Good Lock, feito para Infinix com XOS (A
 
 ## Changelog
 
+### 2.2.1
+- Correção crítica: WRITE_SETTINGS e WRITE_SECURE_SETTINGS declarados no manifest (sem isso o pm grant do nível 3 falharia no aparelho)
+
 ### 2.2.0
 - Novo módulo Domínio Total: escala de animação (0,5x/1x/1,5x/off), tamanho da fonte do sistema, vibração ao tocar, esconder ícones da barra de status, notificações heads-up e modo imersivo - tudo reversível no app
 - Integração com Shizuku (opcional): concede WRITE_SECURE_SETTINGS sem root e sem PC (depuração Wi-Fi), guiada passo a passo no app
