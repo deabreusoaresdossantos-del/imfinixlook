@@ -43,6 +43,25 @@
         <activity android:name=".NotificationHistoryActivity" android:exported="false" />
         <activity android:name=".TipsActivity" android:exported="false" />
         <activity android:name=".AboutActivity" android:exported="false" />
+        <activity android:name=".ControleTotalActivity" android:exported="false" />
+
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:exported="true"
+            android:multiprocess="false" />
+
+        <service
+            android:name=".ImfinixAccessibilityService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config" />
+        </service>
 
         <service
             android:name=".NotificationLogService"

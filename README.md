@@ -19,6 +19,12 @@ Hub completo de personalização estilo Good Lock, feito para Infinix com XOS (A
 
 ## Changelog
 
+### 2.2.0
+- Novo módulo Domínio Total: escala de animação (0,5x/1x/1,5x/off), tamanho da fonte do sistema, vibração ao tocar, esconder ícones da barra de status, notificações heads-up e modo imersivo - tudo reversível no app
+- Integração com Shizuku (opcional): concede WRITE_SECURE_SETTINGS sem root e sem PC (depuração Wi-Fi), guiada passo a passo no app
+- Gesto de voltar na Alça de Borda via serviço de acessibilidade (arraste a pílula para dentro da tela)
+- Primeira dependência externa: Shizuku API (só usada quando o usuário ativa o nível 3)
+
 ### 2.1.0
 - Alça de Borda agora roda como serviço em primeiro plano (não é mais morta pelo sistema) com notificação discreta para configurar/desativar
 - Tema aplicado na home ao voltar do módulo Temas
@@ -57,7 +63,7 @@ Requer JDK 17 e Android SDK 34.
 ## Detalhes
 
 - Package: `com.imfinix.look`
-- Kotlin, somente framework Android (sem AndroidX, sem libs)
+- Kotlin + Shizuku API (opcional em runtime; app funciona 100% sem o Shizuku instalado)
 - Permissões: SET_WALLPAPER e SYSTEM_ALERT_WINDOW (somente para a Alça de Borda)
 - Dados: tudo local (SharedPreferences); nenhum dado sai do aparelho
 - Licença: MIT

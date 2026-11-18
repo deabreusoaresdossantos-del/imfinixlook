@@ -36,7 +36,18 @@ class GesturesActivity : Activity() {
                     EdgeHandleService.stop(this)
                 }
             }
-            Ui.note(col, "Como usar: a pílula azul fica na borda direita de qualquer tela. Arraste para cima/baixo para posicionar na altura do seu polegar. Toque nela para abrir a lista de apps. Enquanto ativa, uma notificação discreta mantém a alça viva (exigência do Android).")
+            Ui.note(col, "Como usar: a pílula azul fica na borda direita de qualquer tela. Toque nela para abrir seus apps. Arraste para cima/baixo para posicionar. Enquanto ativa, uma notificação discreta mantém a alça viva (exigência do Android).")
+
+            Ui.section(col, "Gesto de voltar")
+            val a11yOn = (Settings.Secure.getString(contentResolver, "enabled_accessibility_services") ?: "").contains(packageName)
+            if (a11yOn) {
+                Ui.card(col, "✅", "Gesto de voltar ativo", "Arraste a pílula para a esquerda (para dentro da tela) para voltar, de qualquer app.", 2) {}
+            } else {
+                Ui.card(col, "⬅️", "Ativar gesto de voltar", "Arraste a pílula para dentro da tela para voltar - como o One Hand Operation+. Precisa do serviço de acessibilidade do ImfinixLook.", 2) {
+                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                }
+                Ui.note(col, "Na lista de acessibilidade, ative o ImfinixLook. O serviço só executa ações de navegação (voltar) quando você faz o gesto - não lê conteúdo da tela.")
+            }
         }
 
         Ui.section(col, "Apps")

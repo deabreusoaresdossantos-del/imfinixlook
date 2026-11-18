@@ -75,30 +75,44 @@ class EdgeHandleService : Service() {
         params.gravity = Gravity.END or Gravity.CENTER_VERTICAL
 
         var downY = 0f
+        var downX = 0f
         var startY = 0
         var moved = false
+        var gestureDone = false
         v.setOnTouchListener { view, ev ->
             when (ev.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     downY = ev.rawY
+                    downX = ev.rawX
                     startY = params.y
                     moved = false
+                    gestureDone = false
                     view.animate().alpha(1f).setDuration(120).start()
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val dy = ev.rawY - downY
+                    val dx = ev.rawX - downX
                     if (Math.abs(dy) > 12) moved = true
-                    params.y = (startY + dy).toInt()
-                    try {
-                        wm.updateViewLayout(view, params)
-                    } catch (_: Exception) {
+                    // Gestos com acessibilidade (se ativa): arrastar pra esquerda = voltar
+                    if (!gestureDone && dx < -Ui.dp(this, 56) && Math.abs(dx) > Math.abs(dy) * 1.4f) {
+                        if (ImfinixAccessibilityService.perform(1)) { // GLOBAL_ACTION_BACK
+                            gestureDone = true
+                            moved = true
+                            Ui.toast(this, "⬅️ Voltar")
+                        }
+                    } else if (!gestureDone) {
+                        params.y = (startY + dy).toInt()
+                        try {
+                            wm.updateViewLayout(view, params)
+                        } catch (_: Exception) {
+                        }
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
                     view.animate().alpha(0.65f).setDuration(200).start()
-                    if (!moved) {
+                    if (!moved && !gestureDone) {
                         val i = Intent(this, AppPickerActivity::class.java)
                         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         startActivity(i)

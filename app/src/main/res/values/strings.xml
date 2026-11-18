@@ -6,4 +6,5 @@
     <string name="widget_accent_name">Relógio Neon</string>
     <string name="widget_digital_name">Relógio Digital Data</string>
     <string name="widget_analog_name">Relógio Analógico</string>
+    <string name="a11y_desc">Permite que a Alça de Borda do ImfinixLook execute voltar, home e recentes com gestos.</string>
 </resources>
