@@ -20,6 +20,11 @@ class ThemesActivity : Activity() {
         val col = Ui.root(this)
         Ui.header(col, "Temas e Ícones", "Estilo Theme Park: a cor que você escolher pinta o app inteiro")
 
+        Ui.toggle(col, "💧", "Liquid Glass", "Cards translúcidos com borda de vidro e fundo colorido pela paleta", Theme.liquid(this)) {
+            Theme.setLiquid(this, it)
+            build()
+        }
+
         Ui.section(col, "Cor do tema")
         Ui.note(col, "Toque em uma palestra... quer dizer, paleta. Ela muda botões, destaques, ícones e até o relógio Neon do ImfinixLook.")
 

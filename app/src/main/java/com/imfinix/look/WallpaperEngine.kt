@@ -20,7 +20,11 @@ object WallpaperEngine {
         Style("pordosol", "Pôr do Sol", "🌇", "Tons quentes de fim de tarde"),
         Style("neon", "Neon", "⚡", "Preto com faixas vibrantes na diagonal"),
         Style("minimal", "Minimal", "🖤", "Quase preto, limpo e discreto"),
-        Style("galaxia", "Galáxia", "✨", "Roxo profundo com campo de estrelas")
+        Style("galaxia", "Galáxia", "✨", "Roxo profundo com campo de estrelas"),
+        Style("fluxo", "Fluxo", "🌀", "Linhas curvas de campo de fluxo na cor do tema"),
+        Style("topo", "Topográfico", "🗺️", "Curvas de nível como um mapa de relevo"),
+        Style("mesh", "Mesh", "🫧", "Manchas de cor suaves e orgânicas"),
+        Style("orbes", "Orbes de Vidro", "🔮", "Esferas de vidro líquido flutuando")
     )
 
     private fun screenSize(c: Context): Pair<Int, Int> {
@@ -31,7 +35,7 @@ object WallpaperEngine {
     private val cache = HashMap<String, Bitmap>()
 
     fun generate(c: Context, styleId: String, seed: Long = 42L): Bitmap {
-        val key = "$styleId@${screenSize(c)}"
+        val key = "$styleId@${screenSize(c)}#$seed#${Theme.current(c).id}"
         cache[key]?.let { if (!it.isRecycled) return it }
         val bmp = render(c, styleId, seed)
         if (cache.size > 8) cache.clear()
@@ -111,6 +115,94 @@ object WallpaperEngine {
             "minimal" -> {
                 base(intArrayOf(Color.parseColor("#0A0C11"), Color.parseColor("#12151C"), Color.parseColor("#0A0C11")))
                 glow(w * 0.5f, h * 0.0f, w * 0.6f, Color.parseColor("#2A3242"), 60)
+            }
+            "fluxo" -> {
+                base(intArrayOf(Color.parseColor("#05070D"), Color.parseColor("#0B1020")))
+                val pal = Theme.current(c)
+                glow(w * 0.8f, h * 0.2f, w * 0.7f, pal.b, 40)
+                paint.style = Paint.Style.STROKE
+                paint.strokeCap = Paint.Cap.ROUND
+                val ph = rnd.nextFloat() * 6f
+                for (i in 0 until 90) {
+                    var x = rnd.nextFloat() * w
+                    var y = rnd.nextFloat() * h
+                    val path = android.graphics.Path()
+                    path.moveTo(x, y)
+                    for (k in 0 until 40) {
+                        val ang = Math.sin((x * 0.0045f + ph).toDouble()) * 1.6 + Math.cos((y * 0.0032f - ph).toDouble()) * 1.4
+                        x += (Math.cos(ang) * 22).toFloat()
+                        y += (Math.sin(ang) * 22).toFloat()
+                        path.lineTo(x, y)
+                    }
+                    val col = if (i % 2 == 0) pal.a else pal.b
+                    paint.color = Color.argb(40 + rnd.nextInt(110), Color.red(col), Color.green(col), Color.blue(col))
+                    paint.strokeWidth = 1.5f + rnd.nextFloat() * 4f
+                    canvas.drawPath(path, paint)
+                }
+                paint.style = Paint.Style.FILL
+            }
+            "topo" -> {
+                base(intArrayOf(Color.parseColor("#06080C"), Color.parseColor("#0C1118")))
+                val pal = Theme.current(c)
+                paint.style = Paint.Style.STROKE
+                paint.strokeWidth = 2.2f
+                for (cn in 0 until 3) {
+                    val cx = rnd.nextFloat() * w
+                    val cy = rnd.nextFloat() * h
+                    val k1 = 2 + rnd.nextInt(3)
+                    val k2 = 3 + rnd.nextInt(4)
+                    val p1 = rnd.nextFloat() * 6f
+                    val p2 = rnd.nextFloat() * 6f
+                    var r = 30f
+                    var ring = 0
+                    while (r < h * 0.9f) {
+                        val path = android.graphics.Path()
+                        for (s in 0..120) {
+                            val t = s / 120f * 6.2831855f
+                            val rr = r * (1f + 0.16f * Math.sin((k1 * t + p1).toDouble()).toFloat() + 0.08f * Math.sin((k2 * t + p2 + r * 0.01f).toDouble()).toFloat())
+                            val px = cx + (Math.cos(t.toDouble()) * rr).toFloat()
+                            val py = cy + (Math.sin(t.toDouble()) * rr).toFloat()
+                            if (s == 0) path.moveTo(px, py) else path.lineTo(px, py)
+                        }
+                        path.close()
+                        val col = if (cn % 2 == 0) pal.a else pal.b
+                        paint.color = Color.argb(if (ring % 5 == 0) 150 else 70, Color.red(col), Color.green(col), Color.blue(col))
+                        canvas.drawPath(path, paint)
+                        r += 26f
+                        ring++
+                    }
+                }
+                paint.style = Paint.Style.FILL
+            }
+            "mesh" -> {
+                val pal = Theme.current(c)
+                base(intArrayOf(Color.parseColor("#080A12"), Color.parseColor("#0E1220")))
+                for (i in 0 until 7) {
+                    val col = if (i % 2 == 0) pal.a else pal.b
+                    glow(rnd.nextFloat() * w, rnd.nextFloat() * h, w * (0.55f + rnd.nextFloat() * 0.5f), col, 80 + rnd.nextInt(60))
+                }
+            }
+            "orbes" -> {
+                val pal = Theme.current(c)
+                base(intArrayOf(Color.parseColor("#070913"), Color.parseColor("#101426")))
+                glow(w * 0.2f, h * 0.2f, w * 0.7f, pal.a, 50)
+                glow(w * 0.85f, h * 0.8f, w * 0.7f, pal.b, 50)
+                for (i in 0 until 8) {
+                    val r = w * (0.07f + rnd.nextFloat() * 0.17f)
+                    val cx = rnd.nextFloat() * w
+                    val cy = rnd.nextFloat() * h
+                    val tint = if (i % 2 == 0) pal.a else pal.b
+                    paint.shader = RadialGradient(cx - r * 0.3f, cy - r * 0.3f, r * 1.3f,
+                        intArrayOf(Color.argb(150, 255, 255, 255), Color.argb(70, Color.red(tint), Color.green(tint), Color.blue(tint)), Color.argb(20, Color.red(tint), Color.green(tint), Color.blue(tint))),
+                        floatArrayOf(0f, 0.55f, 1f), Shader.TileMode.CLAMP)
+                    canvas.drawCircle(cx, cy, r, paint)
+                    paint.shader = null
+                    paint.style = Paint.Style.STROKE
+                    paint.strokeWidth = 2.5f
+                    paint.color = Color.argb(140, 255, 255, 255)
+                    canvas.drawCircle(cx, cy, r, paint)
+                    paint.style = Paint.Style.FILL
+                }
             }
             else -> { // galaxia
                 base(intArrayOf(Color.parseColor("#0A0618"), Color.parseColor("#1B1040"), Color.parseColor("#07040F")))

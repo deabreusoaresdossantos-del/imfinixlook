@@ -13,6 +13,7 @@ import android.widget.TextView
 class WallpapersActivity : Activity() {
 
     private var selected = 0
+    private var seed = 42L
     private var preview: ImageView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +56,7 @@ class WallpapersActivity : Activity() {
 
         fun refreshPreview() {
             val style = WallpaperEngine.styles[selected]
-            img.setImageBitmap(WallpaperEngine.generate(this, style.id))
+            img.setImageBitmap(WallpaperEngine.generate(this, style.id, seed))
             label.text = "${style.emoji} ${style.name} - ${style.desc}"
         }
         refreshPreview()
@@ -97,6 +98,11 @@ class WallpapersActivity : Activity() {
             i += 3
         }
 
+        Ui.button(col, "🎲 Gerar outra variação", primary = false) {
+            seed = java.util.Random().nextLong()
+            build()
+        }
+
         Ui.section(col, "Aplicar")
         Ui.button(col, "🏠 Tela inicial") { apply(WallpaperManager.FLAG_SYSTEM) }
         Ui.button(col, "🔒 Tela de bloqueio", primary = false) { apply(WallpaperManager.FLAG_LOCK) }
@@ -107,7 +113,7 @@ class WallpapersActivity : Activity() {
     private fun apply(which: Int) {
         try {
             val style = WallpaperEngine.styles[selected]
-            val bmp = WallpaperEngine.generate(this, style.id)
+            val bmp = WallpaperEngine.generate(this, style.id, seed)
             WallpaperManager.getInstance(this).setBitmap(bmp, null, true, which)
             Ui.toast(this, "Wallpaper ${style.name} aplicado ✅")
         } catch (e: Exception) {

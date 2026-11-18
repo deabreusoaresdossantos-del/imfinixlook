@@ -27,4 +27,10 @@ object Theme {
     fun set(c: Context, id: String) {
         c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, id).apply()
     }
+
+    fun liquid(c: Context): Boolean = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("liquid", false)
+
+    fun setLiquid(c: Context, v: Boolean) {
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("liquid", v).apply()
+    }
 }

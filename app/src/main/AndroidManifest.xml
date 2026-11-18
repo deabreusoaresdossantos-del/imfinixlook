@@ -49,6 +49,55 @@
         <activity android:name=".AboutActivity" android:exported="false" />
         <activity android:name=".ControleTotalActivity" android:exported="false" />
         <activity android:name=".DepthActivity" android:exported="false" />
+        <activity android:name=".IconPackActivity" android:exported="false" />
+        <receiver
+            android:name=".LiquidClockProvider"
+            android:exported="false"
+            android:label="Relógio Liquid">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/liquid_clock_info" />
+        </receiver>
+
+        <receiver
+            android:name=".LiquidWideProvider"
+            android:exported="false"
+            android:label="Relógio Largo Liquid">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/liquid_wide_info" />
+        </receiver>
+
+        <receiver
+            android:name=".LiquidBatteryProvider"
+            android:exported="false"
+            android:label="Bateria Liquid">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/liquid_battery_info" />
+        </receiver>
+
+        <receiver
+            android:name=".LiquidDockProvider"
+            android:exported="false"
+            android:label="Atalhos Liquid">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/liquid_dock_info" />
+        </receiver>
+
 
         <service
             android:name=".DepthWallpaperService"

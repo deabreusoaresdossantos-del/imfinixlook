@@ -55,6 +55,12 @@ object Ui {
     }
 
     fun cardBg(c: Context, radiusDp: Float = 20f): GradientDrawable {
+        if (Theme.liquid(c)) {
+            val lg = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.argb(78, 255, 255, 255), Color.argb(20, 255, 255, 255)))
+            lg.cornerRadius = dp(c, radiusDp).toFloat()
+            lg.setStroke(dp(c, 1), Color.argb(130, 255, 255, 255))
+            return lg
+        }
         val g = roundRect(CARD, radiusDp, c)
         g.setStroke(dp(c, 1), STROKE)
         return g
@@ -86,7 +92,14 @@ object Ui {
         a.window.statusBarColor = BG
         a.window.navigationBarColor = BG
         val scroll = ScrollView(a)
-        scroll.setBackgroundColor(BG)
+        if (Theme.liquid(a)) {
+            scroll.background = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(blend(accent(a), BG, 0.32f), BG, blend(accent2(a), BG, 0.26f))
+            )
+        } else {
+            scroll.setBackgroundColor(BG)
+        }
         scroll.isVerticalScrollBarEnabled = false
         val col = LinearLayout(a)
         col.orientation = LinearLayout.VERTICAL
