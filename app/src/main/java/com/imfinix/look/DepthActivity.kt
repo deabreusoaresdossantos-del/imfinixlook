@@ -53,6 +53,7 @@ class DepthActivity : Activity() {
             satBar?.progress = (hsv[1] * 100).toInt()
             valBar?.progress = (hsv[2] * 100).toInt()
         }
+        DepthEngine.bumpRev(this)
         refresh()
     }
 
