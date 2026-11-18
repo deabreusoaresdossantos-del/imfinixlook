@@ -186,6 +186,15 @@ class DepthActivity : Activity() {
                     recreate()
                 }.show()
         }
+        Ui.button(col, "🅰️ Fonte: ${DepthEngine.fontNames[p.getInt("font", 0).coerceIn(0, DepthEngine.fontNames.size - 1)]}", primary = false) {
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Fonte do relógio")
+                .setItems(DepthEngine.fontNames.toTypedArray()) { _, i ->
+                    p.edit().putInt("font", i).apply()
+                    DepthEngine.bumpRev(this)
+                    recreate()
+                }.show()
+        }
         colorUi(col)
         Ui.slider(col, "Tamanho", "📏", 100, p.getInt("size", 70)) {
             p.edit().putInt("size", maxOf(it, 30)).apply()

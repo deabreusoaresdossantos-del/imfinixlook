@@ -166,6 +166,20 @@ object DepthEngine {
         return Bitmap.createScaledBitmap(up, b.width, b.height, true)
     }
 
+    val fontNames = listOf("Padrão do estilo", "Bebas Neue", "Anton", "Oswald", "Playfair Display", "Cormorant", "DM Serif", "Pacifico", "Dancing Script", "Caveat", "Orbitron", "Audiowide", "Rajdhani", "Pixel 8-bit", "VT323 Terminal", "Space Mono", "Monoton Neon", "Bungee", "Bungee Outline", "Righteous", "Lobster", "Abril Fatface", "Black Ops", "Fredoka", "Shrikhand", "Rubik Mono", "Major Mono", "Megrim", "Faster One", "Bangers", "Cinzel")
+    private val fontCache = HashMap<Int, Typeface?>()
+
+    @Synchronized
+    fun customFont(c: Context): Typeface? {
+        val i = prefs(c).getInt("font", 0)
+        if (i <= 0 || i > fontNames.size - 1) return null
+        return fontCache.getOrPut(i) {
+            try { Typeface.createFromAsset(c.assets, "fonts/f%02d.ttf".format(i - 1)) } catch (e: Throwable) { null }
+        }
+    }
+
+    private fun tface(c: Context, family: String, style: Int): Typeface = customFont(c) ?: Typeface.create(family, style)
+
     fun clockColor(c: Context): Int = prefs(c).getInt("ccolor", Color.WHITE)
 
     fun clockColor2(c: Context): Int = prefs(c).getInt("ccolor2", Color.parseColor("#F472B6"))
@@ -234,9 +248,9 @@ object DepthEngine {
         val mm = String.format("%02d", now.get(Calendar.MINUTE))
         val ss = String.format("%02d", now.get(Calendar.SECOND))
         when (style) {
-            1 -> row(c, cv, w, top, targetW, Typeface.create("sans-serif", Typeface.BOLD), "$hh:$mm", alpha, now, false, false)
-            2 -> stacked(c, cv, w, top, targetW, Typeface.create("sans-serif-thin", Typeface.NORMAL), hh, mm, alpha, 1f, now)
-            3 -> stacked(c, cv, w, top, targetW, Typeface.create("sans-serif-black", Typeface.NORMAL), hh, mm, alpha, 0.55f, now)
+            1 -> row(c, cv, w, top, targetW, tface(c, "sans-serif", Typeface.BOLD), "$hh:$mm", alpha, now, false, false)
+            2 -> stacked(c, cv, w, top, targetW, tface(c, "sans-serif-thin", Typeface.NORMAL), hh, mm, alpha, 1f, now)
+            3 -> stacked(c, cv, w, top, targetW, tface(c, "sans-serif-black", Typeface.NORMAL), hh, mm, alpha, 0.55f, now)
             4 -> {
                 val r = targetW * 0.55f
                 val cx = w / 2f
@@ -244,13 +258,13 @@ object DepthEngine {
                 val path = Path()
                 path.addArc(RectF(cx - r, cy - r, cx + r, cy + r), 200f, 140f)
                 val len = PathMeasure(path, false).length
-                val p = clockPaint(c, alpha, top, top + r, Typeface.create("sans-serif", Typeface.BOLD))
+                val p = clockPaint(c, alpha, top, top + r, tface(c, "sans-serif", Typeface.BOLD))
                 fit(p, "$hh:$mm", len * 0.78f)
                 cv.drawTextOnPath("$hh:$mm", path, len / 2f - p.measureText("$hh:$mm") / 2f, 0f, p)
                 drawDate(c, cv, w, cy - r * 0.2f, now, p)
             }
             5 -> {
-                val p = clockPaint(c, alpha, top, top + w * 0.2f, Typeface.create("sans-serif-light", Typeface.NORMAL))
+                val p = clockPaint(c, alpha, top, top + w * 0.2f, tface(c, "sans-serif-light", Typeface.NORMAL))
                 p.textAlign = Paint.Align.LEFT
                 p.textSize = w * 0.15f * (sizePct / 70f)
                 val x = w * 0.08f
@@ -258,31 +272,31 @@ object DepthEngine {
                 cv.drawText("$hh:$mm", x, y, p)
                 val d = Paint(p)
                 d.shader = null
-                d.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                d.typeface = tface(c, "sans-serif-medium", Typeface.NORMAL)
                 d.textSize = p.textSize * 0.32f
                 cv.drawText(dateFull(now), x, y + d.textSize * 1.6f, d)
             }
             6 -> {
                 val dias = arrayOf("domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado")
-                val p = clockPaint(c, alpha, top, top + targetW * 0.6f, Typeface.create("serif", Typeface.NORMAL))
+                val p = clockPaint(c, alpha, top, top + targetW * 0.6f, tface(c, "serif", Typeface.NORMAL))
                 val wd = dias[now.get(Calendar.DAY_OF_WEEK) - 1]
                 fit(p, wd, targetW)
                 val y1 = top - p.fontMetrics.ascent
                 cv.drawText(wd, w / 2f, y1, p)
                 val d = Paint(p)
                 d.shader = null
-                d.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                d.typeface = tface(c, "sans-serif-medium", Typeface.NORMAL)
                 d.textSize = p.textSize * 0.38f
                 cv.drawText(dateFull(now), w / 2f, y1 + d.textSize * 1.5f, d)
-                val t = clockPaint(c, alpha, top, top + targetW, Typeface.create("sans-serif-black", Typeface.NORMAL))
+                val t = clockPaint(c, alpha, top, top + targetW, tface(c, "sans-serif-black", Typeface.NORMAL))
                 fit(t, "$hh:$mm", targetW * 0.62f)
                 cv.drawText("$hh:$mm", w / 2f, y1 + d.textSize * 1.5f + t.textSize * 1.25f, t)
             }
-            7 -> row(c, cv, w, top, targetW, Typeface.create("sans-serif-medium", Typeface.BOLD), "$hh:$mm", alpha, now, true, false)
-            8 -> row(c, cv, w, top, targetW, Typeface.create("sans-serif-condensed", Typeface.BOLD), "$hh:$mm:$ss", alpha, now, false, false)
-            9 -> stacked(c, cv, w, top, targetW, Typeface.create("serif", Typeface.BOLD_ITALIC), hh, mm, alpha, 1f, now)
-            10 -> row(c, cv, w, top, targetW, Typeface.create("monospace", Typeface.BOLD), "$hh:$mm", alpha, now, false, true)
-            else -> stacked(c, cv, w, top, targetW, Typeface.create("sans-serif-black", Typeface.NORMAL), hh, mm, alpha, 1f, now)
+            7 -> row(c, cv, w, top, targetW, tface(c, "sans-serif-medium", Typeface.BOLD), "$hh:$mm", alpha, now, true, false)
+            8 -> row(c, cv, w, top, targetW, tface(c, "sans-serif-condensed", Typeface.BOLD), "$hh:$mm:$ss", alpha, now, false, false)
+            9 -> stacked(c, cv, w, top, targetW, tface(c, "serif", Typeface.BOLD_ITALIC), hh, mm, alpha, 1f, now)
+            10 -> row(c, cv, w, top, targetW, tface(c, "monospace", Typeface.BOLD), "$hh:$mm", alpha, now, false, true)
+            else -> stacked(c, cv, w, top, targetW, tface(c, "sans-serif-black", Typeface.NORMAL), hh, mm, alpha, 1f, now)
         }
     }
 
