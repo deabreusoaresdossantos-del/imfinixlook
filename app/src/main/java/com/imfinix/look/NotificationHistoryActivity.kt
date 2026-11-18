@@ -125,6 +125,13 @@ class NotificationHistoryActivity : Activity() {
             texts.addView(s)
         }
         box.addView(texts)
+        box.setOnClickListener {
+            try {
+                val launch = packageManager.getLaunchIntentForPackage(pkg)
+                if (launch != null) startActivity(launch)
+            } catch (_: Exception) {
+            }
+        }
         col.addView(box)
         if (index < 16) Ui.animIn(box, index / 2)
     }

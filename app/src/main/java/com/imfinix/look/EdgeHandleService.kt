@@ -1,9 +1,15 @@
 package com.imfinix.look
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.MotionEvent
@@ -19,8 +25,36 @@ class EdgeHandleService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        goForeground()
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         show()
+    }
+
+    private fun goForeground() {
+        val channelId = "edge_handle"
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (nm.getNotificationChannel(channelId) == null) {
+            val ch = NotificationChannel(channelId, "Alça de Borda", NotificationManager.IMPORTANCE_MIN)
+            ch.description = "Mantém a alça de borda flutuante ativa"
+            ch.setShowBadge(false)
+            nm.createNotificationChannel(ch)
+        }
+        val open = PendingIntent.getActivity(
+            this, 0, Intent(this, GesturesActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val n: Notification = Notification.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.ic_menu_compass)
+            .setContentTitle("Alça de Borda ativa")
+            .setContentText("Toque para configurar ou desativar")
+            .setContentIntent(open)
+            .setOngoing(true)
+            .build()
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIF_ID, n)
+        }
     }
 
     private fun show() {
@@ -80,6 +114,7 @@ class EdgeHandleService : Service() {
             wm.addView(v, params)
             handle = v
         } catch (_: Exception) {
+            stopSelf()
         }
     }
 
@@ -95,8 +130,11 @@ class EdgeHandleService : Service() {
     }
 
     companion object {
+        private const val NOTIF_ID = 41
+
         fun start(c: android.content.Context) {
-            c.startService(Intent(c, EdgeHandleService::class.java))
+            val i = Intent(c, EdgeHandleService::class.java)
+            c.startForegroundService(i)
         }
 
         fun stop(c: android.content.Context) {

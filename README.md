@@ -17,6 +17,20 @@ Hub completo de personalização estilo Good Lock, feito para Infinix com XOS (A
 | Notificações | NotiStar | Histórico funcional via NotificationListenerService, com ícone do app, horário e limpeza | - |
 | Dicas XOS | - | 15 truques de personalização, gestos, bateria e sistema | - |
 
+## Changelog
+
+### 2.1.0
+- Alça de Borda agora roda como serviço em primeiro plano (não é mais morta pelo sistema) com notificação discreta para configurar/desativar
+- Tema aplicado na home ao voltar do módulo Temas
+- Cache de wallpapers (estilos abrem instantâneo)
+- Toque em uma notificação do histórico abre o app de origem
+- Perfis de som mostram os níveis salvos no cartão
+- Resposta tátil (vibração) ao tocar nos cartões
+- Correção: callback de fixação de widget agora aponta para o provider certo
+
+### 2.0.0
+- Rebuild completo: novo design system, Estúdio de Wallpapers, 5 relógios, temas de cor, controles reais de tela, perfis de som, Alça de Borda, NotiStar turbinado, 15 dicas XOS
+
 ## Build
 
 CI: o GitHub Actions compila o APK a cada push e publica a release automaticamente a cada tag `v*` (`.github/workflows/build.yml`).

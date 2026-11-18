@@ -28,7 +28,18 @@ object WallpaperEngine {
         return Pair(maxOf(m.widthPixels, 720), maxOf(m.heightPixels, 1280))
     }
 
+    private val cache = HashMap<String, Bitmap>()
+
     fun generate(c: Context, styleId: String, seed: Long = 42L): Bitmap {
+        val key = "$styleId@${screenSize(c)}"
+        cache[key]?.let { if (!it.isRecycled) return it }
+        val bmp = render(c, styleId, seed)
+        if (cache.size > 8) cache.clear()
+        cache[key] = bmp
+        return bmp
+    }
+
+    private fun render(c: Context, styleId: String, seed: Long): Bitmap {
         val (w, h) = screenSize(c)
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)

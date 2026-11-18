@@ -27,13 +27,16 @@ class GesturesActivity : Activity() {
             Ui.toggle(col, "🎯", "Alça de Borda ativa", "Pílula flutuante na lateral: arraste para posicionar, toque para abrir seus apps", isRunning()) { on ->
                 getSharedPreferences("imfinix_state", MODE_PRIVATE).edit().putBoolean("edge_handle", on).apply()
                 if (on) {
+                    if (android.os.Build.VERSION.SDK_INT >= 33) {
+                        requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7)
+                    }
                     EdgeHandleService.start(this)
                     Ui.toast(this, "Alça ativada! Procure a pílula na lateral direita 🎯")
                 } else {
                     EdgeHandleService.stop(this)
                 }
             }
-            Ui.note(col, "Como usar: a pílula azul fica na borda direita de qualquer tela. Arraste para cima/baixo para posicionar na altura do seu polegar. Toque nela para abrir a lista de apps.")
+            Ui.note(col, "Como usar: a pílula azul fica na borda direita de qualquer tela. Arraste para cima/baixo para posicionar na altura do seu polegar. Toque nela para abrir a lista de apps. Enquanto ativa, uma notificação discreta mantém a alça viva (exigência do Android).")
         }
 
         Ui.section(col, "Apps")

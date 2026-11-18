@@ -7,8 +7,17 @@ import java.util.Calendar
 
 class MainActivity : Activity() {
 
+    private var paletteAtBuild: String = ""
+
+    override fun onResume() {
+        super.onResume()
+        val now = Theme.current(this).id
+        if (paletteAtBuild.isNotEmpty() && paletteAtBuild != now) recreate()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        paletteAtBuild = Theme.current(this).id
         val col = Ui.root(this)
 
         val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {

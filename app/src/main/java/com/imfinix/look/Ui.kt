@@ -63,7 +63,10 @@ object Ui {
     private fun pressable(v: View, onClick: () -> Unit) {
         v.setOnTouchListener { view, ev ->
             when (ev.actionMasked) {
-                android.view.MotionEvent.ACTION_DOWN -> view.animate().scaleX(0.97f).scaleY(0.97f).setDuration(120).start()
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    view.animate().scaleX(0.97f).scaleY(0.97f).setDuration(120).start()
+                    view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                }
                 android.view.MotionEvent.ACTION_UP ->
                     view.animate().scaleX(1f).scaleY(1f).setDuration(180).setInterpolator(OvershootInterpolator(2f)).start()
                 android.view.MotionEvent.ACTION_CANCEL -> view.animate().scaleX(1f).scaleY(1f).setDuration(150).start()

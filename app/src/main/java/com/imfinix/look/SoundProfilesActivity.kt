@@ -96,7 +96,12 @@ class SoundProfilesActivity : Activity() {
             Ui.note(col, "Nenhum perfil ainda. Ajuste os volumes acima e salve como perfil, por exemplo \"Trabalho\" ou \"Noite\".")
         }
         names.forEachIndexed { idx, name ->
-            Ui.card(col, "🎚️", name, "Toque para aplicar • segure para apagar", idx) {
+            val o = profiles.getJSONObject(name)
+            val summary = streams.mapNotNull { (label, _, stream) ->
+                val key = stream.toString()
+                if (o.has(key)) "${label.split(" ")[0]} ${o.getInt(key)}" else null
+            }.joinToString(" • ")
+            Ui.card(col, "🎚️", name, "$summary\nToque para aplicar • segure para apagar", idx) {
                 applyProfile(profiles.getJSONObject(name))
                 Ui.toast(this, "Perfil \"$name\" aplicado 🎧")
             }.setOnLongClickListener {

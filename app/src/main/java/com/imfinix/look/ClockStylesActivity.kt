@@ -106,8 +106,10 @@ class ClockStylesActivity : Activity() {
             val mgr = AppWidgetManager.getInstance(this)
             val component = ComponentName(this, face.provider)
             if (mgr.isRequestPinAppWidgetSupported) {
+                val cbIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+                cbIntent.component = component
                 val cb = PendingIntent.getBroadcast(
-                    this, 0, Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE),
+                    this, 0, cbIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 mgr.requestPinAppWidget(component, null, cb)
