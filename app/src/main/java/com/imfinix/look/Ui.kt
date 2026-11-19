@@ -441,5 +441,34 @@ object Ui {
         col.addView(t)
     }
 
+    fun chips(col: LinearLayout, labels: List<String>, selected: Int, onPick: (Int) -> Unit) {
+        val c = col.context
+        val row = LinearLayout(c)
+        row.orientation = LinearLayout.HORIZONTAL
+        val rlp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        rlp.bottomMargin = dp(c, 10)
+        row.layoutParams = rlp
+        labels.forEachIndexed { i, label ->
+            val chip = TextView(c)
+            chip.text = label
+            chip.textSize = 13f
+            chip.gravity = Gravity.CENTER
+            val bg = cardBg(c, 12f)
+            if (i == selected) {
+                bg.setStroke(dp(c, 2), accent(c))
+                chip.setTextColor(accent(c))
+            } else {
+                chip.setTextColor(SUB)
+            }
+            chip.background = bg
+            val clp = LinearLayout.LayoutParams(0, dp(c, 42), 1f)
+            if (i < labels.size - 1) clp.rightMargin = dp(c, 6)
+            chip.layoutParams = clp
+            chip.setOnClickListener { onPick(i) }
+            row.addView(chip)
+        }
+        col.addView(row)
+    }
+
     fun toast(c: Context, msg: String) = Toast.makeText(c, msg, Toast.LENGTH_SHORT).show()
 }

@@ -28,9 +28,9 @@ class MainActivity : Activity() {
         Ui.hero(col, "$greeting! Vamos deixar seu Infinix com a sua cara", "ImfinixLook 2.0 - hub completo de personalização para o XOS", "✨")
 
         val prefs = getSharedPreferences("imfinix_state", MODE_PRIVATE)
-        if (!prefs.getBoolean("seen_v2", false)) {
-            Ui.card(col, "🎉", "Novidades da versão 2.0", "Visual novo, estúdio de wallpapers, 5 relógios, temas de cor, controle real de brilho, perfis de som, alça de borda e muito mais.") {
-                prefs.edit().putBoolean("seen_v2", true).apply()
+        if (!prefs.getBoolean("seen_v27", false)) {
+            Ui.card(col, "🎉", "Novidades da versão 2.7", "Domínio Total turbinado: DPI da tela, taxa de atualização, ajuste fino de cada animação, esconder relógio/bateria/sinal da barra de status, porcentagem da bateria e economia de energia. E no Estúdio: 6 estilos novos de wallpaper, wallpaper da sua foto e wallpaper do dia automático.") {
+                prefs.edit().putBoolean("seen_v27", true).apply()
                 recreate()
             }
         }
@@ -39,8 +39,8 @@ class MainActivity : Activity() {
         val modules = listOf(
             Triple("🪄", "Profundidade", "Sujeito na frente do relógio"),
             Triple("💧", "Liquid Glass", "Ícones e widgets de vidro"),
-            Triple("👑", "Domínio Total", "Animações, status bar, fonte"),
-            Triple("🌌", "Wallpapers", "Estúdio de gradientes"),
+            Triple("👑", "Domínio Total", "Animações, DPI, status bar, Hz"),
+            Triple("🌌", "Wallpapers", "16 estilos + sua foto"),
             Triple("🔒", "Tela de Bloqueio", "Wallpaper e ajustes"),
             Triple("🕐", "Relógios", "5 estilos + modo mesa"),
             Triple("🎨", "Temas", "Cores do app inteiro"),
