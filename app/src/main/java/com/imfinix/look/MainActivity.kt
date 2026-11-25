@@ -7,6 +7,23 @@ import java.util.Calendar
 
 class MainActivity : Activity() {
 
+    companion object {
+        val C_PURPLE = android.graphics.Color.parseColor("#A78BFA")
+        val C_BLUE = android.graphics.Color.parseColor("#6C8CFF")
+        val C_CYAN = android.graphics.Color.parseColor("#22D3EE")
+        val C_AMBER = android.graphics.Color.parseColor("#FBBF24")
+        val C_VIOLET = android.graphics.Color.parseColor("#9D6CFF")
+        val C_SLATE = android.graphics.Color.parseColor("#94A3B8")
+        val C_GREEN = android.graphics.Color.parseColor("#34D399")
+        val C_PINK = android.graphics.Color.parseColor("#F472B6")
+        val C_YELLOW = android.graphics.Color.parseColor("#FACC15")
+        val C_ORANGE = android.graphics.Color.parseColor("#FB923C")
+        val C_TEAL = android.graphics.Color.parseColor("#2DD4BF")
+        val C_RED = android.graphics.Color.parseColor("#F87171")
+        val C_INDIGO = android.graphics.Color.parseColor("#818CF8")
+        val C_LIME = android.graphics.Color.parseColor("#A3E635")
+    }
+
     private var paletteAtBuild: String = ""
 
     override fun onResume() {
@@ -25,34 +42,34 @@ class MainActivity : Activity() {
             in 12..17 -> "Boa tarde"
             else -> "Boa noite"
         }
-        Ui.hero(col, "$greeting! Vamos deixar seu Infinix com a sua cara", "ImfinixLook 2.0 - hub completo de personalização para o XOS", "✨")
+        Ui.hero(col, "$greeting! Vamos deixar seu Infinix com a sua cara", "ImfinixLook 2.9 - visual novo, fundação reforçada", "✨")
 
         val prefs = getSharedPreferences("imfinix_state", MODE_PRIVATE)
-        if (!prefs.getBoolean("seen_v28", false)) {
-            Ui.card(col, "🎉", "Novidade da versão 2.8: Assistente IA", "Agora o app tem chat com Claude e Perplexity (você cola sua chave de API, que fica só no seu celular) e um assistente Offline que responde sem internet e sem chave.") {
-                prefs.edit().putBoolean("seen_v28", true).apply()
+        if (!prefs.getBoolean("seen_v29", false)) {
+            Ui.card(col, "🎉", "Novidades da versão 2.9", "Visual renovado: capa com brilho, cartões com cor própria por módulo e 3 temas novos (Oceano, Aurora, Café). Fundação reforçada: relatório de erro automático e backup/restauração das suas configurações (em Sobre).") {
+                prefs.edit().putBoolean("seen_v29", true).apply()
                 recreate()
             }
         }
 
         Ui.section(col, "Módulos")
         val modules = listOf(
-            Triple("🤖", "Assistente IA", "Claude, Perplexity e offline"),
-            Triple("🪄", "Profundidade", "Sujeito na frente do relógio"),
-            Triple("💧", "Liquid Glass", "Ícones e widgets de vidro"),
-            Triple("👑", "Domínio Total", "Animações, DPI, status bar, Hz"),
-            Triple("🌌", "Wallpapers", "16 estilos + sua foto"),
-            Triple("🔒", "Tela de Bloqueio", "Wallpaper e ajustes"),
-            Triple("🕐", "Relógios", "5 estilos + modo mesa"),
-            Triple("🎨", "Temas", "Cores do app inteiro"),
-            Triple("⚡", "Ajustes Rápidos", "Brilho, tela e atalhos"),
-            Triple("🎛️", "Painel Rápido", "Configs escondidas"),
-            Triple("🔊", "Perfis de Som", "Volumes e perfis"),
-            Triple("✋", "Gestos", "Alça de borda e apps"),
-            Triple("🔔", "Notificações", "Histórico completo"),
-            Triple("💡", "Dicas XOS", "Truques do sistema")
+            ModuleItem("🤖", "Assistente IA", "Claude, Perplexity e offline", C_PURPLE),
+            ModuleItem("🪄", "Profundidade", "Sujeito na frente do relógio", C_BLUE),
+            ModuleItem("💧", "Liquid Glass", "Ícones e widgets de vidro", C_CYAN),
+            ModuleItem("👑", "Domínio Total", "Animações, DPI, status bar, Hz", C_AMBER),
+            ModuleItem("🌌", "Wallpapers", "16 estilos + sua foto", C_VIOLET),
+            ModuleItem("🔒", "Tela de Bloqueio", "Wallpaper e ajustes", C_SLATE),
+            ModuleItem("🕐", "Relógios", "5 estilos + modo mesa", C_GREEN),
+            ModuleItem("🎨", "Temas", "9 paletas de cor", C_PINK),
+            ModuleItem("⚡", "Ajustes Rápidos", "Brilho, tela e atalhos", C_YELLOW),
+            ModuleItem("🎛️", "Painel Rápido", "Configs escondidas", C_ORANGE),
+            ModuleItem("🔊", "Perfis de Som", "Volumes e perfis", C_TEAL),
+            ModuleItem("✋", "Gestos", "Alça de borda e apps", C_RED),
+            ModuleItem("🔔", "Notificações", "Histórico completo", C_INDIGO),
+            ModuleItem("💡", "Dicas XOS", "Truques do sistema", C_LIME)
         )
-        Ui.grid(col, modules, 2) { which ->
+        Ui.moduleGrid(col, modules, 2) { which ->
             val target = when (which) {
                 0 -> AiChatActivity::class.java
                 1 -> DepthActivity::class.java
@@ -73,7 +90,7 @@ class MainActivity : Activity() {
         }
 
         Ui.section(col, "Sobre")
-        Ui.card(col, "💎", "ImfinixLook 2.0", "Projeto original inspirado em hubs de personalização. Feito para XOS / Android 14.", 12) {
+        Ui.card(col, "💎", "ImfinixLook 2.9", "Projeto original inspirado em hubs de personalização. Feito para XOS / Android 14.", 12) {
             startActivity(Intent(this, AboutActivity::class.java))
         }
     }

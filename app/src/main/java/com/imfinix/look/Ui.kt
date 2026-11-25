@@ -18,6 +18,8 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 
+data class ModuleItem(val emoji: String, val title: String, val desc: String, val tint: Int)
+
 object Ui {
     val BG = Color.parseColor("#07090F")
     val SURFACE = Color.parseColor("#10141D")
@@ -114,7 +116,7 @@ object Ui {
         val c = col.context
         val box = LinearLayout(c)
         box.orientation = LinearLayout.VERTICAL
-        box.background = gradient(c, 26f)
+        box.background = heroBg(c, 26f)
         val pad = dp(c, 22)
         box.setPadding(pad, pad, pad, pad)
         val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -124,16 +126,17 @@ object Ui {
 
         val e = TextView(c)
         e.text = emoji
-        e.textSize = 30f
+        e.textSize = 34f
         box.addView(e)
 
         val t = TextView(c)
         t.text = title
-        t.textSize = 26f
+        t.textSize = 27f
         t.setTextColor(Color.WHITE)
         t.typeface = Typeface.DEFAULT_BOLD
+        t.letterSpacing = 0.01f
         val tlp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        tlp.topMargin = dp(c, 10)
+        tlp.topMargin = dp(c, 12)
         t.layoutParams = tlp
         box.addView(t)
 
@@ -142,12 +145,109 @@ object Ui {
         s.textSize = 14f
         s.setTextColor(Color.parseColor("#E6E9F5"))
         val slp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        slp.topMargin = dp(c, 4)
+        slp.topMargin = dp(c, 6)
         s.layoutParams = slp
         box.addView(s)
 
         col.addView(box)
         animIn(box, 0)
+    }
+
+    private fun heroBg(c: Context, radiusDp: Float): android.graphics.drawable.Drawable {
+        val base = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+            intArrayOf(blend(accent(c), Color.parseColor("#0B0E16"), 0.72f),
+                blend(accent2(c), Color.parseColor("#0B0E16"), 0.66f),
+                blend(accent(c), Color.parseColor("#07090F"), 0.45f)))
+        base.cornerRadius = dp(c, radiusDp).toFloat()
+        val glow = GradientDrawable()
+        glow.setGradientType(GradientDrawable.RADIAL_GRADIENT)
+        glow.setGradientCenter(0.18f, 0.05f)
+        glow.gradientRadius = dp(c, 260).toFloat()
+        glow.colors = intArrayOf(Color.argb(90, 255, 255, 255), Color.TRANSPARENT)
+        glow.cornerRadius = dp(c, radiusDp).toFloat()
+        val stroke = GradientDrawable()
+        stroke.cornerRadius = dp(c, radiusDp).toFloat()
+        stroke.setStroke(dp(c, 1), Color.argb(70, 255, 255, 255))
+        stroke.setColor(Color.TRANSPARENT)
+        return android.graphics.drawable.LayerDrawable(arrayOf(base, glow, stroke))
+    }
+
+    fun tintedChip(c: Context, emoji: String, tint: Int): TextView {
+        val chip = TextView(c)
+        chip.text = emoji
+        chip.textSize = 20f
+        chip.gravity = Gravity.CENTER
+        val bg = GradientDrawable()
+        bg.setColor(blend(tint, CARD, 0.24f))
+        bg.cornerRadius = dp(c, 14).toFloat()
+        bg.setStroke(dp(c, 1), blend(tint, Color.WHITE, 0.30f))
+        chip.background = bg
+        val size = dp(c, 46)
+        chip.layoutParams = LinearLayout.LayoutParams(size, size)
+        return chip
+    }
+
+    fun moduleGrid(col: LinearLayout, items: List<ModuleItem>, startIndex: Int, onClick: (Int) -> Unit) {
+        val c = col.context
+        var idx = startIndex
+        var i = 0
+        while (i < items.size) {
+            val row = LinearLayout(c)
+            row.orientation = LinearLayout.HORIZONTAL
+            val rlp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            rlp.bottomMargin = dp(c, 12)
+            row.layoutParams = rlp
+            for (j in 0..1) {
+                if (i + j < items.size) {
+                    val m = items[i + j]
+                    val cell = LinearLayout(c)
+                    cell.orientation = LinearLayout.VERTICAL
+                    cell.background = moduleBg(c, m.tint)
+                    val pad = dp(c, 16)
+                    cell.setPadding(pad, pad, pad, pad)
+                    val clp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    if (j == 0) clp.rightMargin = dp(c, 12)
+                    cell.layoutParams = clp
+
+                    cell.addView(tintedChip(c, m.emoji, m.tint))
+                    val t = TextView(c)
+                    t.text = m.title
+                    t.textSize = 15f
+                    t.setTextColor(TEXT)
+                    t.typeface = Typeface.DEFAULT_BOLD
+                    val tlp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    tlp.topMargin = dp(c, 12)
+                    t.layoutParams = tlp
+                    cell.addView(t)
+                    if (m.desc.isNotEmpty()) {
+                        val d = TextView(c)
+                        d.text = m.desc
+                        d.textSize = 12f
+                        d.setTextColor(SUB)
+                        val dlp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        dlp.topMargin = dp(c, 3)
+                        d.layoutParams = dlp
+                        cell.addView(d)
+                    }
+                    val which = i + j
+                    pressable(cell) { onClick(which) }
+                    row.addView(cell)
+                    animIn(cell, idx++)
+                } else {
+                    val spacer = View(c)
+                    spacer.layoutParams = LinearLayout.LayoutParams(0, 1, 1f)
+                    row.addView(spacer)
+                }
+            }
+            col.addView(row)
+            i += 2
+        }
+    }
+
+    private fun moduleBg(c: Context, tint: Int): GradientDrawable {
+        val g = cardBg(c, 22f)
+        g.setStroke(dp(c, 1), blend(tint, CARD, 0.35f))
+        return g
     }
 
     fun header(col: LinearLayout, title: String, subtitle: String) {

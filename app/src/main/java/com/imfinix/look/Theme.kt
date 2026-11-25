@@ -13,7 +13,10 @@ object Theme {
         Palette("ambar", "Âmbar", "🌅", Color.parseColor("#FBBF24"), Color.parseColor("#F97316")),
         Palette("rosa", "Rosa", "🌸", Color.parseColor("#F472B6"), Color.parseColor("#A78BFA")),
         Palette("ciano", "Ciano", "🧊", Color.parseColor("#22D3EE"), Color.parseColor("#60A5FA")),
-        Palette("rubi", "Rubi", "🔥", Color.parseColor("#F87171"), Color.parseColor("#FB7185"))
+        Palette("rubi", "Rubi", "🔥", Color.parseColor("#F87171"), Color.parseColor("#FB7185")),
+        Palette("oceano", "Oceano", "🌊", Color.parseColor("#38BDF8"), Color.parseColor("#34D399")),
+        Palette("aurora2", "Aurora", "🌌", Color.parseColor("#67E8F9"), Color.parseColor("#C084FC")),
+        Palette("cafe", "Café", "☕", Color.parseColor("#E0B589"), Color.parseColor("#A98467"))
     )
 
     private const val PREFS = "imfinix_theme"

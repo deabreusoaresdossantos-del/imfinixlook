@@ -46,8 +46,12 @@ object ShizukuShell {
             val p = m.invoke(null, arrayOf("sh", "-c", cmd), null, null) as Process
             val out = BufferedReader(InputStreamReader(p.inputStream)).readText()
             val err = BufferedReader(InputStreamReader(p.errorStream)).readText()
-            val code = p.waitFor()
-            Pair(code, (out + err).trim())
+            val finished = p.waitFor(8, java.util.concurrent.TimeUnit.SECONDS)
+            if (!finished) {
+                p.destroy()
+                return Pair(-2, "tempo esgotado")
+            }
+            Pair(p.exitValue(), (out + err).trim())
         } catch (e: Exception) {
             Pair(-1, e.message ?: "erro")
         }
